@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Multi-Browser Mobile Fit</title>
+    <title>Multi-Browser + Auto Clicker Mobile</title>
     
     <!-- Nhúng Gridstack CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.1.2/gridstack.min.css" rel="stylesheet"/>
@@ -11,7 +11,6 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
-        /* Khóa màn hình điện thoại không cho cuộn trang */
         body, html { 
             height: 100%; 
             font-family: Arial, sans-serif; 
@@ -21,17 +20,48 @@
             width: 100%;
         }
         
-        .top-bar {
-            background-color: #2d2d2d; color: #ddd; padding: 5px 10px; font-size: 11px;
-            text-align: center; border-bottom: 1px solid #444; height: 28px;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        /* Bảng điều khiển Auto Click nổi trên cùng */
+        .auto-click-panel {
+            background-color: #222;
+            color: #fff;
+            padding: 6px 10px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #ff4757;
+            height: 38px;
+            z-index: 9999;
         }
-        .top-bar b { color: #fff; }
 
-        /* Khung lưới chiếm trọn phần còn lại của màn hình điện thoại */
+        .auto-click-panel input {
+            width: 50px;
+            padding: 2px 4px;
+            background: #444;
+            color: #fff;
+            border: 1px solid #666;
+            border-radius: 3px;
+            text-align: center;
+        }
+
+        .auto-click-panel button {
+            background-color: #ff4757;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .auto-click-panel button.active {
+            background-color: #2ed573;
+        }
+
+        /* Khung lưới chính */
         .grid-stack { 
             background: #1e1e1e; 
-            height: calc(100vh - 28px); 
+            height: calc(100vh - 38px); 
         }
 
         .grid-stack-item-content {
@@ -52,18 +82,38 @@
         .uc-header { background-color: #ff6600; }
 
         .browser-content { flex: 1; width: 100%; height: 100%; border: none; background-color: #fff; }
+
+        /* Hiệu ứng gợn sóng báo hiệu vị trí đang Auto Click */
+        .click-effect {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ff4757;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: ping 0.5s ease-out forwards;
+            pointer-events: none;
+            z-index: 99999;
+        }
+
+        @keyframes ping {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="top-bar">
-        📱 <b>Chế độ Mobile:</b> 4 màn hình vừa khít thiết bị di động.
+    <!-- Thanh điều khiển Auto Click -->
+    <div class="auto-click-panel">
+        <span>⚡ <b>Auto Click:</b></span>
+        <div>
+            Khoảng cách (ms): <input type="number" id="intervalInput" value="1000" step="100" min="100">
+        </div>
+        <button id="toggleBtn" onclick="toggleAutoClick()">BẮT ĐẦU</button>
     </div>
 
-    <!-- 
-      - Màn hình điện thoại chia lưới chuẩn: 
-      - Mỗi ô chiếm w: 6, h: 12 (trên tổng số 12 cột) -> Tự động thành 2 cột, 2 hàng lấp đầy khít màn hình.
-    -->
+    <!-- 4 màn hình trình duyệt -->
     <div class="grid-stack">
         <div class="grid-stack-item" gs-id="browser-1" gs-x="0" gs-y="0" gs-w="6" gs-h="12">
             <div class="grid-stack-item-content">
@@ -96,59 +146,71 @@
 
     <!-- Thư viện Gridstack JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.1.2/gridstack-all.js"></script>
-    
-    <!-- Thư viện Firebase Realtime Database (Tùy chọn đồng bộ) -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
     <script>
-        // Cấu hình Firebase (Điền lại thông tin của bạn nếu muốn đồng bộ online)
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            databaseURL: "YOUR_DATABASE_URL",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
-
-        // Khởi tạo Firebase (Bỏ qua đoạn này hoặc điền đúng config nếu dùng tính năng phòng chung)
-        try {
-            firebase.initializeApp(firebaseConfig);
-            var db = firebase.database();
-            var layoutRef = db.ref('shared_room/layout');
-        } catch(e) {
-            console.log("Firebase chưa được cấu hình, chạy ở chế độ offline cục bộ.");
-        }
-
-        let isUpdatingFromRemote = false;
-
-        // Khởi tạo Gridstack tối ưu cho mobile (Khóa chiều cao tự động co giãn theo màn hình)
+        // Khởi tạo lưới Gridstack cho mobile
         const grid = GridStack.init({
-            cellHeight: 'auto', // Tự động chia đều chiều cao theo màn hình thiết bị
+            cellHeight: 'auto',
             float: true,
-            disableResize: true, // Khóa tính năng thay đổi kích thước trên di động cho đỡ bị vỡ giao diện
+            disableResize: true,
             minRow: 2,
             maxRow: 2
         });
 
-        // Đồng bộ nếu có Firebase
-        if (typeof db !== 'undefined') {
-            grid.on('change', function(event, items) {
-                if (isUpdatingFromRemote) return;
-                const serializedData = grid.save(false);
-                layoutRef.set(serializedData);
-            });
+        let isAutoClicking = false;
+        let clickTimer = null;
+        let targetX = window.innerWidth / 2;  // Mặc định click ở giữa màn hình
+        let targetY = window.innerHeight / 2;
 
-            layoutRef.on('value', (snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    isUpdatingFromRemote = true;
-                    grid.load(data);
-                    setTimeout(() => { isUpdatingFromRemote = false; }, 200);
-                }
-            });
+        // Lắng nghe sự kiện chạm để chọn vị trí muốn Auto Click trên màn hình điện thoại
+        window.addEventListener('click', function(e) {
+            // Chỉ bắt sự kiện nếu bấm vào vùng thanh công cụ hoặc khoảng trống (tránh bấm nhầm trong iframe do bảo mật trình duyệt)
+            targetX = e.clientX;
+            targetY = e.clientY;
+            
+            // Hiển thị hiệu ứng chấm đỏ tại vị trí vừa chạm
+            showClickEffect(targetX, targetY);
+        });
+
+        function showClickEffect(x, y) {
+            const div = document.createElement('div');
+            div.className = 'click-effect';
+            div.style.left = x + 'px';
+            div.style.top = y + 'px';
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 500);
+        }
+
+        // Bật / Tắt Auto Click
+        function toggleAutoClick() {
+            const btn = document.getElementById('toggleBtn');
+            const intervalVal = parseInt(document.getElementById('intervalInput').value) || 1000;
+
+            isAutoClicking = !isAutoClicking;
+
+            if (isAutoClicking) {
+                btn.textContent = "DỪNG LẠI";
+                btn.classList.add('active');
+
+                // Bắt đầu vòng lặp click tự động
+                clickTimer = setInterval(() => {
+                    showClickEffect(targetX, targetY);
+                    
+                    // Thực hiện giả lập hành động click tại tọa độ (Lưu ý: Do chính sách CORS của thẻ iframe, 
+                    // mã nguồn web bên ngoài không thể trực tiếp click vào sâu bên trong trang web của bên thứ 3, 
+                    // nhưng tính năng này sẽ click liên tục trên bề mặt giao diện chính và các nút điều khiển).
+                    
+                    const element = document.elementFromPoint(targetX, targetY);
+                    if (element && element !== document.body) {
+                        element.click();
+                    }
+                }, intervalVal);
+
+            } else {
+                btn.textContent = "BẮT ĐẦU";
+                btn.classList.remove('active');
+                clearInterval(clickTimer);
+            }
         }
     </script>
 </body>
