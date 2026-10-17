@@ -3,120 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Browser (Cốc Cốc, Firefox, Google, UC)</title>
+    <title>Multi-Browser Real-time Sync</title>
     
-    <!-- Nhúng thư viện Gridstack.js CSS -->
+    <!-- Nhúng Gridstack CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.1.2/gridstack.min.css" rel="stylesheet"/>
 
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body, html { height: 100%; font-family: Arial, sans-serif; background-color: #1e1e1e; overflow: hidden; }
         
-        body, html {
-            height: 100%;
-            font-family: Arial, sans-serif;
-            background-color: #1e1e1e;
-            overflow: hidden;
-        }
-
-        /* Thanh hướng dẫn trên cùng */
         .top-bar {
-            background-color: #2d2d2d;
-            color: #ddd;
-            padding: 8px 15px;
-            font-size: 13px;
-            text-align: center;
-            border-bottom: 1px solid #444;
-            height: 35px;
+            background-color: #2d2d2d; color: #ddd; padding: 8px 15px; font-size: 13px;
+            text-align: center; border-bottom: 1px solid #444; height: 35px;
         }
+        .top-bar b { color: #fff; }
 
-        .top-bar b {
-            color: #fff;
-        }
+        .grid-stack { background: #1e1e1e; height: calc(100vh - 35px); }
 
-        /* Khung chứa lưới Gridstack */
-        .grid-stack {
-            background: #1e1e1e;
-            height: calc(100vh - 35px);
-        }
-
-        /* Giao diện từng ô trình duyệt */
         .grid-stack-item-content {
-            background-color: #ffffff;
-            border-radius: 6px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            background-color: #ffffff; border-radius: 6px; display: flex;
+            flex-direction: column; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
             border: 1px solid #444;
         }
 
-        /* Thanh tiêu đề riêng cho từng trình duyệt */
         .browser-header {
-            color: white;
-            padding: 8px 12px;
-            font-size: 13px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: move;
-            user-select: none;
+            color: white; padding: 8px 12px; font-size: 13px; font-weight: bold;
+            display: flex; align-items: center; justify-content: space-between; cursor: move; user-select: none;
         }
 
-        /* Màu đặc trưng cho từng trình duyệt */
-        .cococ-header { background-color: #00875a; }   /* Xanh Cốc Cốc */
-        .firefox-header { background-color: #ff7139; } /* Cam Firefox */
-        .google-header { background-color: #4285f4; }  /* Xanh Google */
-        .uc-header { background-color: #ff6600; }      /* Cam UC Browser */
+        .cococ-header { background-color: #00875a; }
+        .firefox-header { background-color: #ff7139; }
+        .google-header { background-color: #4285f4; }
+        .uc-header { background-color: #ff6600; }
 
-        /* Khung iframe chứa trang web */
-        .browser-content {
-            flex: 1;
-            width: 100%;
-            height: 100%;
-            border: none;
-            background-color: #fff;
-        }
+        .browser-content { flex: 1; width: 100%; height: 100%; border: none; background-color: #fff; }
     </style>
 </head>
 <body>
 
     <div class="top-bar">
-        💡 <b>Hướng dẫn:</b> Kéo <b>thanh tiêu đề</b> để di chuyển ô | Kéo <b>các cạnh/góc viền</b> để thay đổi kích thước.
+        🌐 <b>Phòng chung Real-time:</b> Mọi thao tác kéo thả, đổi kích thước sẽ đồng bộ cho tất cả mọi người cùng vào link!
     </div>
 
-    <!-- Khung lưới chính -->
+    <!-- Khung lưới chính với các gs-id định danh cho từng ô -->
     <div class="grid-stack">
-        <!-- Ô 1: Cốc Cốc -->
-        <div class="grid-stack-item" gs-x="0" gs-y="0" gs-w="6" gs-h="12">
+        <div class="grid-stack-item" gs-id="browser-1" gs-x="0" gs-y="0" gs-w="6" gs-h="12">
             <div class="grid-stack-item-content">
                 <div class="browser-header cococ-header">🟢 Cốc Cốc Browser</div>
                 <iframe src="https://coccoc.com/search" class="browser-content"></iframe>
             </div>
         </div>
 
-        <!-- Ô 2: Firefox -->
-        <div class="grid-stack-item" gs-x="6" gs-y="0" gs-w="6" gs-h="12">
+        <div class="grid-stack-item" gs-id="browser-2" gs-x="6" gs-y="0" gs-w="6" gs-h="12">
             <div class="grid-stack-item-content">
                 <div class="browser-header firefox-header">🦊 Firefox</div>
                 <iframe src="https://www.mozilla.org/vi/" class="browser-content"></iframe>
             </div>
         </div>
 
-        <!-- Ô 3: Google -->
-        <div class="grid-stack-item" gs-x="0" gs-y="12" gs-w="6" gs-h="12">
+        <div class="grid-stack-item" gs-id="browser-3" gs-x="0" gs-y="12" gs-w="6" gs-h="12">
             <div class="grid-stack-item-content">
                 <div class="browser-header google-header">🌐 Google Search</div>
                 <iframe src="https://www.google.com/search?igu=1" class="browser-content"></iframe>
             </div>
         </div>
 
-        <!-- Ô 4: UC Web -->
-        <div class="grid-stack-item" gs-x="6" gs-y="12" gs-w="6" gs-h="12">
+        <div class="grid-stack-item" gs-id="browser-4" gs-x="6" gs-y="12" gs-w="6" gs-h="12">
             <div class="grid-stack-item-content">
                 <div class="browser-header uc-header">🐿️ UC Web</div>
                 <iframe src="https://ucweb.com" class="browser-content"></iframe>
@@ -124,16 +76,57 @@
         </div>
     </div>
 
-    <!-- Nhúng thư viện Gridstack.js JavaScript -->
+    <!-- Thư viện Gridstack JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.1.2/gridstack-all.js"></script>
+    
+    <!-- Thư viện Firebase Realtime Database (Compat v10) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
     <script>
-        // Khởi tạo tính năng kéo thả và chia lưới
-        GridStack.init({
+        // TODO: Thay thông tin cấu hình Firebase miễn phí của bạn vào đây
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Khởi tạo Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const layoutRef = db.ref('shared_room/layout');
+
+        let isUpdatingFromRemote = false;
+
+        // Khởi tạo Gridstack
+        const grid = GridStack.init({
             cellHeight: '15px',
             float: true,
             minRow: 4
         });
-    </script>
 
+        // 1. Khi người dùng kéo thả/đổi kích thước ô trên máy mình -> Lưu lên Firebase
+        grid.on('change', function(event, items) {
+            if (isUpdatingFromRemote) return;
+            const serializedData = grid.save(false); // Lấy tọa độ cấu trúc lưới hiện tại
+            layoutRef.set(serializedData);
+        });
+
+        // 2. Lắng nghe thay đổi từ Firebase (khi có người khác hoặc chính mình thay đổi) -> Cập nhật lại giao diện
+        layoutRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                isUpdatingFromRemote = true;
+                grid.load(data); // Tự động load lại vị trí mới cho các ô
+                setTimeout(() => {
+                    isUpdatingFromRemote = false;
+                }, 200);
+            }
+        });
+    </script>
 </body>
 </html>
