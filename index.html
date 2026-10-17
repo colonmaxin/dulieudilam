@@ -3,9 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Danh Thiếp Điện Tử - Đổi Mật Khẩu & Quản Lý</title>
+    <title>Danh Thiếp Điện Tử - Online Database</title>
     <!-- Thư viện FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Thư viện Firebase SDK (Firestore) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
     <style>
         * {
             margin: 0;
@@ -58,11 +63,13 @@
             background: #e0a800;
         }
 
-        /* Phần nền phía trên */
+        /* Phần nền phía trên (Banner) */
         .card-header {
             background: linear-gradient(135deg, #4facfe, #00f2fe);
             height: 120px;
             position: relative;
+            background-size: cover;
+            background-position: center;
         }
 
         /* Ảnh đại diện */
@@ -221,12 +228,16 @@
             margin-bottom: 4px;
         }
 
-        .form-group input {
+        .form-group input[type="text"], .form-group input[type="password"] {
             width: 100%;
             padding: 8px 12px;
             border: 1px solid #ccc;
             border-radius: 6px;
             font-size: 14px;
+        }
+
+        .form-group input[type="file"] {
+            font-size: 13px;
         }
 
         .modal-actions {
@@ -257,7 +268,7 @@
 
     <div class="card-container">
         <!-- Banner trên -->
-        <div class="card-header">
+        <div class="card-header" id="card-banner">
             <div class="profile-img-container">
                 <img id="profile-img" src="https://via.placeholder.com/150" alt="Ảnh đại diện">
             </div>
@@ -267,45 +278,50 @@
         <div class="card-body">
             <h1 class="name" id="card-name" contenteditable="false">Nguyễn Văn A</h1>
             <p class="title" id="card-title" contenteditable="false">Chuyên Viên Phát Triển Phần Mềm</p>
-            <p class="bio" id="card-bio" contenteditable="false">Xin chào! Tôi là lập trình viên đam mê tạo ra các giải pháp công nghệ tối ưu và trải nghiệm người dùng tuyệt vời.</p>
+            <p class="bio" id="card-bio" contenteditable="false">Xin chào! Tôi đang tải dữ liệu từ Database Online...</p>
 
             <p class="edit-hint">💡 Đang mở khóa quản lý: Click vào chữ để sửa trực tiếp phía trên.</p>
 
             <!-- Các nút liên hệ/mạng xã hội -->
             <div class="links-container" style="margin-top: 15px;">
-                <a href="tel:0123456789" id="link-phone" class="btn-link phone">
+                <a href="#" id="link-phone" class="btn-link phone">
                     <i class="fa-solid fa-phone"></i> <span id="txt-phone">Gọi Điện Thoại</span>
                 </a>
-                <a href="mailto:email@example.com" id="link-email" class="btn-link email">
+                <a href="#" id="link-email" class="btn-link email">
                     <i class="fa-solid fa-envelope"></i> <span id="txt-email">Gửi Email</span>
                 </a>
-                <a href="https://zalo.me/0123456789" id="link-zalo" target="_blank" class="btn-link zalo">
+                <a href="#" id="link-zalo" target="_blank" class="btn-link zalo">
                     <i class="fa-solid fa-comment-dots"></i> <span id="txt-zalo">Chat Zalo</span>
                 </a>
-                <a href="https://facebook.com" id="link-fb" target="_blank" class="btn-link facebook">
+                <a href="#" id="link-fb" target="_blank" class="btn-link facebook">
                     <i class="fa-brands fa-facebook"></i> <span id="txt-fb">Facebook Cá Nhân</span>
                 </a>
-                <a href="https://linkedin.com" id="link-linkedin" target="_blank" class="btn-link linkedin">
+                <a href="#" id="link-linkedin" target="_blank" class="btn-link linkedin">
                     <i class="fa-brands fa-linkedin"></i> <span id="txt-linkedin">LinkedIn</span>
                 </a>
                 
                 <!-- Nút mở bảng chỉnh sửa liên lạc -->
                 <button id="config-btn" onclick="openContactModal()" class="btn-link" style="display:none; background: #6c757d; color: white; cursor: pointer;">
-                    <i class="fa-solid fa-address-book"></i> Chỉnh sửa Liên lạc & Mật khẩu
+                    <i class="fa-solid fa-gear"></i> Cài Đặt & Tải Ảnh Lên
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Bảng Modal chỉnh sửa Liên lạc, Ảnh & Mật khẩu -->
+    <!-- Bảng Modal chỉnh sửa nâng cao -->
     <div class="modal-overlay" id="contactModal">
         <div class="modal-content">
-            <h3>⚙️ Quản lý Thông tin & Bảo mật</h3>
+            <h3>⚙️ Quản lý Database & Tải Ảnh</h3>
             
             <div class="form-group">
-                <label>Link Ảnh Đại Diện (URL):</label>
-                <input type="text" id="input-img">
+                <label>🖼️ Tải Ảnh Đại Diện Mới (Từ máy/Điện thoại):</label>
+                <input type="file" id="input-profile-file" accept="image/*">
             </div>
+            <div class="form-group">
+                <label>🎨 Tải Ảnh Nền / Banner Mới:</label>
+                <input type="file" id="input-banner-file" accept="image/*">
+            </div>
+            <hr style="margin: 10px 0; border: 0; border-top: 1px solid #eee;">
             <div class="form-group">
                 <label>Số Điện Thoại:</label>
                 <input type="text" id="input-phone">
@@ -333,67 +349,116 @@
 
             <div class="modal-actions">
                 <button class="btn-cancel-modal" onclick="closeContactModal()">Hủy</button>
-                <button class="btn-save-modal" onclick="saveContactChanges()">Lưu Thông Tin</button>
+                <button class="btn-save-modal" onclick="saveContactChanges()">Lưu Lên Database Online</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Khi trang tải xong, khôi phục dữ liệu từ localStorage
-        window.onload = function() {
-            if(localStorage.getItem('card_name')) document.getElementById('card-name').innerText = localStorage.getItem('card_name');
-            if(localStorage.getItem('card_title')) document.getElementById('card-title').innerText = localStorage.getItem('card_title');
-            if(localStorage.getItem('card_bio')) document.getElementById('card-bio').innerText = localStorage.getItem('card_bio');
-            
-            if(localStorage.getItem('card_img')) document.getElementById('profile-img').src = localStorage.getItem('card_img');
-            
-            if(localStorage.getItem('phone_num')) {
-                document.getElementById('link-phone').href = "tel:" + localStorage.getItem('phone_num');
-                document.getElementById('txt-phone').innerText = "Gọi: " + localStorage.getItem('phone_num');
-            }
-            if(localStorage.getItem('email_val')) {
-                document.getElementById('link-email').href = "mailto:" + localStorage.getItem('email_val');
-                document.getElementById('txt-email').innerText = localStorage.getItem('email_val');
-            }
-            if(localStorage.getItem('zalo_num')) {
-                document.getElementById('link-zalo').href = "https://zalo.me/" + localStorage.getItem('zalo_num');
-            }
-            if(localStorage.getItem('fb_url')) {
-                document.getElementById('link-fb').href = localStorage.getItem('fb_url');
-            }
-            if(localStorage.getItem('linkedin_url')) {
-                document.getElementById('link-linkedin').href = localStorage.getItem('linkedin_url');
-            }
+        // ==========================================
+        // HÃY THAY THẾ ĐOẠN CẤU HÌNH DƯỚI BẰNG FIREBASE CỦA BẠN
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
+
+        // Khởi tạo Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // ID tài liệu trên Firestore Database (Mỗi danh thiếp có thể quy định 1 ID riêng)
+        const docId = "my_digital_card";
+
+        // Tải dữ liệu từ Database Online ngay khi mở trang
+        window.onload = function() {
+            loadCardData();
+        };
+
+        function loadCardData() {
+            db.collection("digital_cards").doc(docId).get().then((doc) => {
+                if (doc.exists) {
+                    let data = doc.data();
+                    
+                    // Cập nhật Text
+                    document.getElementById('card-name').innerText = data.name || "Nguyễn Văn A";
+                    document.getElementById('card-title').innerText = data.title || "Chuyên Viên Phần Mềm";
+                    document.getElementById('card-bio').innerText = data.bio || "Xin chào!";
+                    
+                    // Cập nhật Ảnh
+                    if(data.profileImg) document.getElementById('profile-img').src = data.profileImg;
+                    if(data.bannerImg) {
+                        let bannerEl = document.getElementById('card-banner');
+                        bannerEl.style.backgroundImage = `url('${data.bannerImg}')`;
+                        bannerEl.style.backgroundSize = "cover";
+                    }
+
+                    // Cập nhật Liên kết
+                    if(data.phone) {
+                        document.getElementById('link-phone').href = "tel:" + data.phone;
+                        document.getElementById('txt-phone').innerText = "Gọi: " + data.phone;
+                    }
+                    if(data.email) {
+                        document.getElementById('link-email').href = "mailto:" + data.email;
+                        document.getElementById('txt-email').innerText = data.email;
+                    }
+                    if(data.zalo) {
+                        document.getElementById('link-zalo').href = "https://zalo.me/" + data.zalo;
+                    }
+                    if(data.fb) {
+                        document.getElementById('link-fb').href = data.fb;
+                    }
+                    if(data.linkedin) {
+                        document.getElementById('link-linkedin').href = data.linkedin;
+                    }
+                } else {
+                    console.log("Chưa có dữ liệu trên Database, sử dụng mặc định.");
+                }
+            }).catch((error) => {
+                console.error("Lỗi khi tải dữ liệu từ database: ", error);
+            });
+        }
 
         let isEditing = false;
 
         function handleOwnerAccess() {
-            // Lấy mật khẩu từ localStorage, nếu chưa có thì dùng mặc định "123456"
-            let currentAdminPassword = localStorage.getItem('admin_pass') || "123456";
+            // Lấy mật khẩu từ Database hoặc mặc định là "123456"
+            db.collection("digital_cards").doc(docId).get().then((doc) => {
+                let currentAdminPassword = (doc.exists && doc.data().adminPass) ? doc.data().adminPass : "123456";
 
-            if (!isEditing) {
-                let passwordInput = prompt("Vui lòng nhập mật khẩu quản lý để chỉnh sửa:");
-                if (passwordInput === null) return; 
+                if (!isEditing) {
+                    let passwordInput = prompt("Vui lòng nhập mật khẩu quản lý để chỉnh sửa:");
+                    if (passwordInput === null) return; 
 
-                if (passwordInput === currentAdminPassword) {
-                    alert("Đăng nhập thành công!");
-                    isEditing = true;
-                    setEditModeState(true);
+                    if (passwordInput === currentAdminPassword) {
+                        alert("Đăng nhập thành công!");
+                        isEditing = true;
+                        setEditModeState(true);
+                    } else {
+                        alert("Mật khẩu không đúng!");
+                    }
                 } else {
-                    alert("Mật khẩu không đúng!");
-                }
-            } else {
-                isEditing = false;
-                setEditModeState(false);
+                    isEditing = false;
+                    setEditModeState(false);
 
-                // Lưu văn bản trực tiếp trên thẻ
-                localStorage.setItem('card_name', document.getElementById('card-name').innerText);
-                localStorage.setItem('card_title', document.getElementById('card-title').innerText);
-                localStorage.setItem('card_bio', document.getElementById('card-bio').innerText);
-                
-                alert("Đã lưu thay đổi thành công!");
-            }
+                    // Lưu văn bản trực tiếp từ thẻ lên Database Online
+                    let updatedData = {
+                        name: document.getElementById('card-name').innerText,
+                        title: document.getElementById('card-title').innerText,
+                        bio: document.getElementById('card-bio').innerText
+                    };
+
+                    db.collection("digital_cards").doc(docId).set(updatedData, { merge: true }).then(() => {
+                        alert("Đã đồng bộ thay đổi lên Database Online thành công!");
+                    }).catch((error) => {
+                        alert("Lỗi khi lưu dữ liệu: " + error);
+                    });
+                }
+            });
         }
 
         function setEditModeState(status) {
@@ -423,15 +488,19 @@
         }
 
         function openContactModal() {
-            document.getElementById('input-img').value = document.getElementById('profile-img').src;
-            document.getElementById('input-phone').value = localStorage.getItem('phone_num') || "0123456789";
-            document.getElementById('input-email').value = localStorage.getItem('email_val') || "email@example.com";
-            document.getElementById('input-zalo').value = localStorage.getItem('zalo_num') || "0123456789";
-            document.getElementById('input-fb').value = localStorage.getItem('fb_url') || "https://facebook.com";
-            document.getElementById('input-linkedin').value = localStorage.getItem('linkedin_url') || "https://linkedin.com";
-            document.getElementById('input-password').value = ""; // Để trống ô mật khẩu mới khi vừa mở
+            db.collection("digital_cards").doc(docId).get().then((doc) => {
+                let data = doc.exists ? doc.data() : {};
+                document.getElementById('input-phone').value = data.phone || "0123456789";
+                document.getElementById('input-email').value = data.email || "email@example.com";
+                document.getElementById('input-zalo').value = data.zalo || "0123456789";
+                document.getElementById('input-fb').value = data.fb || "https://facebook.com";
+                document.getElementById('input-linkedin').value = data.linkedin || "https://linkedin.com";
+                document.getElementById('input-password').value = "";
+                document.getElementById('input-profile-file').value = "";
+                document.getElementById('input-banner-file').value = "";
 
-            document.getElementById('contactModal').style.display = 'flex';
+                document.getElementById('contactModal').style.display = 'flex';
+            });
         }
 
         function closeContactModal() {
@@ -439,7 +508,6 @@
         }
 
         function saveContactChanges() {
-            let img = document.getElementById('input-img').value;
             let phone = document.getElementById('input-phone').value;
             let email = document.getElementById('input-email').value;
             let zalo = document.getElementById('input-zalo').value;
@@ -447,20 +515,56 @@
             let linkedin = document.getElementById('input-linkedin').value;
             let newPass = document.getElementById('input-password').value;
 
-            if(img) {
-                document.getElementById('profile-img').src = img;
-                localStorage.setItem('card_img', img);
+            let updatePayload = {
+                phone: phone,
+                email: email,
+                zalo: zalo,
+                fb: fb,
+                linkedin: linkedin
+            };
+
+            if(newPass.trim() !== "") {
+                updatePayload.adminPass = newPass.trim();
             }
-            if(phone) {
-                document.getElementById('link-phone').href = "tel:" + phone;
-                document.getElementById('txt-phone').innerText = "Gọi: " + phone;
-                localStorage.setItem('phone_num', phone);
+
+            let profileFile = document.getElementById('input-profile-file').files[0];
+            let bannerFile = document.getElementById('input-banner-file').files[0];
+
+            // Hàm xử lý đẩy dữ liệu lên Database sau khi đã đọc file ảnh (nếu có)
+            function commitToDatabase() {
+                db.collection("digital_cards").doc(docId).set(updatePayload, { merge: true }).then(() => {
+                    closeContactModal();
+                    alert("Đã cập nhật Database Online thành công!");
+                    loadCardData(); // Tải lại thông tin mới lên giao diện
+                }).catch((error) => {
+                    alert("Lỗi kết nối database: " + error);
+                });
             }
-            if(email) {
-                document.getElementById('link-email').href = "mailto:" + email;
-                document.getElementById('txt-email').innerText = email;
-                localStorage.setItem('email_val', email);
+
+            // Xử lý đọc file ảnh đại diện sang Base64 để lưu vào Database
+            if (profileFile) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    updatePayload.profileImg = e.target.result;
+                    if (!bannerFile) commitToDatabase();
+                };
+                reader.readAsDataURL(profileFile);
             }
-            if(zalo) {
-                document.getElementById('link-zalo').href = "https://zalo.me/" + zalo;
-                localStorage.setItem('z
+
+            // Xử lý đọc file ảnh nền sang Base64
+            if (bannerFile) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    updatePayload.bannerImg = e.target.result;
+                    commitToDatabase();
+                };
+                reader.readAsDataURL(bannerFile);
+            }
+
+            if (!profileFile && !bannerFile) {
+                commitToDatabase();
+            }
+        }
+    </script>
+</body>
+</html>
