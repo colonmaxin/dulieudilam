@@ -1,277 +1,89 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OBS Web Studio - Fake Cam & TikTok Live</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Painel de Controle OBS - HTML</title>
+    <!-- Importando a biblioteca oficial do OBS WebSocket para JS -->
+    <script src="https://cdn.jsdelivr.net/npm/obs-websocket-js@5/dist/obs-websocket.min.js"></script>
     <style>
-        :root {
-            --obs-bg: #1e1e1e;
-            --obs-panel: #2d2d2d;
-            --obs-border: #444;
-            --obs-accent: #007acc;
-            --obs-text: #cccccc;
-            --obs-live: #fe2c55; /* Màu thương hiệu TikTok Live */
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--obs-bg); color: var(--obs-text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; user-select: none; }
-
-        .top-menu { height: 30px; background-color: #252526; display: flex; align-items: center; padding: 0 10px; font-size: 12px; border-bottom: 1px solid var(--obs-border); }
-        .top-menu span { padding: 0 10px; cursor: pointer; }
-        .top-menu span:hover { background-color: #3e3e42; }
-
-        .workspace { flex-grow: 1; display: flex; flex-direction: column; padding: 10px; gap: 10px; }
-
-        .preview-container { flex-grow: 1; background-color: #000; border: 1px solid var(--obs-border); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; border-radius: 4px; }
-        
-        /* Màn hình hiển thị chính dùng chung Canvas cho Fake Cam hoặc Video Player */
-        #previewCanvas { width: 100%; height: 100%; object-fit: contain; }
-        
-        /* Thẻ video ẩn dùng để đọc file video nguồn */
-        #hiddenVideo { display: none; }
-
-        .live-badge { position: absolute; top: 15px; left: 15px; background-color: var(--obs-live); color: white; padding: 4px 10px; font-weight: bold; font-size: 12px; border-radius: 3px; display: none; align-items: center; gap: 6px; }
-        .stream-timer { position: absolute; top: 15px; right: 15px; background-color: rgba(0,0,0,0.7); color: white; padding: 4px 8px; font-family: monospace; font-size: 13px; border-radius: 3px; display: none; }
-
-        .bottom-panels { height: 220px; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
-        .panel { background-color: var(--obs-panel); border: 1px solid var(--obs-border); border-radius: 4px; display: flex; flex-direction: column; }
-        .panel-header { background-color: #333; padding: 6px 10px; font-size: 12px; font-weight: bold; border-bottom: 1px solid var(--obs-border); display: flex; justify-content: space-between; align-items: center; }
-        .panel-body { flex-grow: 1; padding: 8px; overflow-y: auto; font-size: 13px; }
-
-        .obs-list-item { padding: 6px 8px; margin-bottom: 3px; background-color: #383838; border-radius: 2px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .obs-list-item.active { background-color: var(--obs-accent); color: white; }
-
-        .audio-channel { margin-bottom: 10px; }
-        .audio-label { font-size: 11px; margin-bottom: 3px; display: flex; justify-content: space-between; }
-        .audio-bar-container { height: 8px; background-color: #222; border-radius: 4px; overflow: hidden; }
-        .audio-bar { height: 100%; width: 30%; background: linear-gradient(90deg, #2ecc71, #f1c40f, #e74c3c); transition: width 0.1s ease; }
-
-        .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; align-content: start; }
-        .obs-btn { background-color: #383838; color: var(--obs-text); border: 1px solid var(--obs-border); padding: 8px; border-radius: 3px; cursor: pointer; font-size: 12px; font-weight: 500; text-align: center; transition: 0.2s; }
-        .obs-btn:hover { background-color: #505050; }
-        .obs-btn.primary { background-color: #2e7d32; color: white; }
-        .obs-btn.primary.is-live { background-color: var(--obs-live); }
-        .obs-btn.tiktok-cfg { background-color: #fe2c55; color: white; }
-
-        /* MODAL CÀI ĐẶT TIKTOK */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: #2d2d2d; padding: 20px; border-radius: 6px; width: 420px; border: 1px solid #444; }
-        .modal-content h3 { margin-bottom: 15px; font-size: 16px; color: #fff; display: flex; align-items: center; gap: 8px; }
-        .modal-content label { display: block; font-size: 12px; margin-bottom: 5px; color: #aaa; }
-        .modal-content input { width: 100%; padding: 8px; margin-bottom: 12px; background: #1e1e1e; border: 1px solid #444; color: #fff; border-radius: 4px; font-family: monospace; }
-        .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
-
-        #fakeCamInput { display: none; }
+        body { font-family: Arial, sans-serif; text-align: center; background: #121212; color: #fff; margin-top: 50px; }
+        .card { background: #1e1e1e; padding: 20px; border-radius: 8px; display: inline-block; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; margin: 5px; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #0056b3; }
+        .red { background: #dc3545; }
+        .red:hover { background: #a71d2a; }
+        #status { font-weight: bold; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-    <div class="top-menu">
-        <span onclick="openSettings()"><i class="fa-solid fa-gear" style="color: #fe2c55;"></i> Cấu hình Server URL & Stream Key</span>
-        <span>Edit</span><span>View</span><span>Tools</span><span>Help</span>
+    <div class="card">
+        <h2>Painel OBS Full HTML</h2>
+        <div id="status" style="color: orange;">Status: Desconectado</div>
+        
+        <hr style="border: 0; border-top: 1px solid #444;">
+
+        <h3>Gravação / Transmissão</h3>
+        <button onclick="startRecord()">Iniciar Gravação</button>
+        <button class="red" onclick="stopRecord()">Parar Gravação</button>
+        <br>
+        <button onclick="startStream()">Iniciar Live</button>
+        <button class="red" onclick="stopStream()">Parar Live</button>
+
+        <hr style="border: 0; border-top: 1px solid #444;">
+
+        <h3>Cenas</h3>
+        <!-- Substitua 'Cena 2' pelo nome exato da sua cena no OBS -->
+        <button onclick="changeScene('Cena 2') Mudar para Cena 2</button>
     </div>
-
-    <div class="workspace">
-        <!-- MÀN HÌNH PREVIEW DÙNG CANVAS CHO FAKE CAM -->
-        <div class="preview-container">
-            <div class="live-badge" id="liveBadge"><i class="fa-solid fa-circle"></i> TIKTOK LIVE ĐANG PHÁT</div>
-            <div class="stream-timer" id="streamTimer">00:00:00</div>
-            
-            <!-- Canvas hiển thị nội dung luồng hình ảnh giả lập camera -->
-            <canvas id="previewCanvas" width="1280" height="720"></canvas>
-            
-            <!-- Thẻ video ẩn để đọc file video dùng làm fake cam -->
-            <video id="hiddenVideo" loop playsinline crossorigin="anonymous"></video>
-        </div>
-
-        <div class="bottom-panels">
-            <!-- SCENES -->
-            <div class="panel">
-                <div class="panel-header"><span>Scenes</span><i class="fa-solid fa-plus"></i></div>
-                <div class="panel-body">
-                    <div class="obs-list-item active" id="sceneFakeCam" onclick="switchScene('fakecam')">Camera chính (Fake Cam)</div>
-                    <div class="obs-list-item" id="sceneWebcam" onclick="switchScene('realwebcam')">Webcam Thật (PC)</div>
-                </div>
-            </div>
-
-            <!-- SOURCES -->
-            <div class="panel">
-                <div class="panel-header">
-                    <span>Sources</span>
-                    <i class="fa-solid fa-plus" title="Chọn file video làm Fake Cam" onclick="document.getElementById('fakeCamInput').click()" style="cursor: pointer;"></i>
-                </div>
-                <div class="panel-body">
-                    <div class="obs-list-item active"><i class="fa-solid fa-file-video"></i> <span id="sourceName">Chưa chọn video Fake Cam</span></div>
-                    <div class="obs-list-item"><i class="fa-solid fa-volume-high"></i> Audio Source</div>
-                </div>
-            </div>
-
-            <!-- AUDIO MIXER -->
-            <div class="panel">
-                <div class="panel-header"><span>Audio Mixer</span></div>
-                <div class="panel-body">
-                    <div class="audio-channel">
-                        <div class="audio-label"><span>Stream Audio</span></div>
-                        <div class="audio-bar-container"><div class="audio-bar" id="micBar" style="width: 40%;"></div></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CONTROLS -->
-            <div class="panel">
-                <div class="panel-header"><span>Controls TikTok Live</span></div>
-                <div class="panel-body controls-grid">
-                    <button class="obs-btn primary" id="streamBtn" onclick="toggleTikTokLive()">Start Streaming</button>
-                    <button class="obs-btn tiktok-cfg" onclick="openSettings()"><i class="fa-solid fa-key"></i> TikTok Config</button>
-                    <button class="obs-btn" onclick="document.getElementById('fakeCamInput').click()">Chọn Video Fake Cam</button>
-                    <button class="obs-btn" onclick="location.reload()">Reset</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL NHẬP CẤU HÌNH TIKTOK -->
-    <div class="modal" id="settingsModal">
-        <div class="modal-content">
-            <h3><i class="fa-solid fa-video" style="color: #fe2c55;"></i> Cài đặt phát trực tiếp TikTok</h3>
-            
-            <label>Server URL (RTMP Server):</label>
-            <input type="text" id="rtmpUrl" placeholder="rtmp://to-live-push.tiktok.com/app/...">
-            
-            <label>Stream Key (Khóa luồng):</label>
-            <input type="password" id="streamKey" placeholder="act_live_123456789...">
-            
-            <div class="modal-actions">
-                <button class="obs-btn" onclick="closeSettings()">Hủy</button>
-                <button class="obs-btn primary" onclick="saveSettings()">Lưu cấu hình</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Input chọn file video -->
-    <input type="file" id="fakeCamInput" accept="video/*" onchange="loadFakeCamVideo(event)">
 
     <script>
-        const canvas = document.getElementById('previewCanvas');
-        const ctx = canvas.getContext('2d');
-        const hiddenVideo = document.getElementById('hiddenVideo');
-        
-        let currentMode = 'fakecam'; // 'fakecam' hoặc 'realwebcam'
-        let realWebcamStream = null;
-        let animationFrameId = null;
+        const obs = new OBSWebSocket();
 
-        // 1. Tải file video làm Fake Cam
-        function loadFakeCamVideo(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const fileURL = URL.createObjectURL(file);
-                hiddenVideo.src = fileURL;
-                hiddenVideo.load();
-                hiddenVideo.play().catch(e => console.log("Cần tương tác để play video"));
+        async function connectOBS() {
+            try {
+                // Altere a porta (4455) e a senha caso tenha configurado no OBS
+                // Se não colocou senha, remova o campo 'password'
+                await obs.connect('ws://192.168.1.10:4455', 'SUA_SENHA_AQUI');
                 
-                document.getElementById('sourceName').innerText = file.name;
-                switchScene('fakecam');
+                document.getElementById('status').innerText = "Status: Conectado com Sucesso!";
+                document.getElementById('status').style.color = "lightgreen";
+                console.log('Conectado ao OBS Studio!');
+            } catch (error) {
+                document.getElementById('status').innerText = "Status: Falha na Conexão";
+                document.getElementById('status').style.color = "red";
+                console.error('Erro ao conectar ao OBS:', error);
             }
         }
 
-        // 2. Vòng lặp vẽ video lên Canvas để giả lập Camera
-        function renderCanvas() {
-            if (currentMode === 'fakecam') {
-                if (hiddenVideo.readyState >= hiddenVideo.HAVE_CURRENT_DATA) {
-                    ctx.drawImage(hiddenVideo, 0, 0, canvas.width, canvas.height);
-                }
-            } else if (currentMode === 'realwebcam' && realWebcamStream) {
-                // Nếu dùng webcam thật thì vẽ khung hình từ video stream thật lên canvas
-                // (có thể tạo một video tạm ẩn cho webcam thật, ở đây vẽ đơn giản)
-            }
-            animationFrameId = requestAnimationFrame(renderCanvas);
+        // Funções de Controle
+        async function startRecord() {
+            try { await obs.call('StartRecord'); } catch (e) { console.error(e); }
         }
-        renderCanvas();
 
-        // 3. Chuyển đổi giữa Fake Cam và Webcam thật
-        async function switchScene(mode) {
-            currentMode = mode;
-            const sceneFake = document.getElementById('sceneFakeCam');
-            const sceneWeb = document.getElementById('sceneWebcam');
+        async function stopRecord() {
+            try { await obs.call('StopRecord'); } catch (e) { console.error(e); }
+        }
 
-            if (mode === 'fakecam') {
-                sceneFake.classList.add('active');
-                sceneWeb.classList.remove('active');
-                hiddenVideo.play();
-            } else {
-                sceneWeb.classList.add('active');
-                sceneFake.classList.remove('active');
-                hiddenVideo.pause();
-                
-                if (!realWebcamStream) {
-                    try {
-                        realWebcamStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                        let tempVid = document.createElement('video');
-                        tempVid.srcObject = realWebcamStream;
-                        tempVid.autoplay = true;
-                        // Cập nhật nguồn vẽ canvas bằng webcam thật
-                        function drawRealWebcam() {
-                            if (currentMode === 'realwebcam') {
-                                ctx.drawImage(tempVid, 0, 0, canvas.width, canvas.height);
-                            }
-                            requestAnimationFrame(drawRealWebcam);
-                        }
-                        drawRealWebcam();
-                    } catch (e) {
-                        alert("Không thể mở Webcam thật.");
-                    }
-                }
+        async function startStream() {
+            try { await obs.call('StartStream'); } catch (e) { console.error(e); }
+        }
+
+        async function stopStream() {
+            try { await obs.call('StopStream'); } catch (e) { console.error(e); }
+        }
+
+        async function changeScene(sceneName) {
+            try {
+                await obs.call('SetCurrentProgramScene', { sceneName: sceneName });
+            } catch (e) {
+                console.error('Erro ao mudar de cena:', e);
             }
         }
 
-        // Thiết lập mặc định tự động chọn một khung hình chờ nếu chưa tải video
-        ctx.fillStyle = "#111";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#aaa";
-        ctx.font = "24px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText("Bấm nút '+' hoặc 'Chọn Video Fake Cam' để tải video lên", canvas.width/2, canvas.height/2);
-
-        // --- CÀI ĐẶT MODAL & TIKTOK LIVE ---
-        function openSettings() { document.getElementById('settingsModal').style.display = 'flex'; }
-        function closeSettings() { document.getElementById('settingsModal').style.display = 'none'; }
-        function saveSettings() {
-            const url = document.getElementById('rtmpUrl').value;
-            const key = document.getElementById('streamKey').value;
-            if(!url || !key) { alert("Vui lòng nhập đầy đủ thông tin!"); return; }
-            alert("Đã lưu cấu hình thành công!");
-            closeSettings();
-        }
-
-        let isLive = false;
-        let timerInterval, secondsElapsed = 0;
-
-        function toggleTikTokLive() {
-            const btn = document.getElementById('streamBtn');
-            const liveBadge = document.getElementById('liveBadge');
-            const streamTimer = document.getElementById('streamTimer');
-            const urlVal = document.getElementById('rtmpUrl').value;
-            const keyVal = document.getElementById('streamKey').value;
-
-            if (!isLive) {
-                if (!urlVal || !keyVal) {
-                    alert("Chưa cấu hình Server URL và Stream Key TikTok!");
-                    openSettings();
-                    return;
-                }
-
-                // Lấy luồng phát trực tiếp từ chính Canvas đang phát Fake Cam (hoặc Webcam)
-                const canvasStream = canvas.captureStream(30); // 30 FPS stream
-
-                isLive = true;
-                btn.innerText = "Stop Streaming";
-                btn.classList.add("is-live");
-                liveBadge.style.display = "flex";
-                streamTimer.style.display = "block";
-
-                secondsElapsed = 0;
-                timerInterval = setInterval(() => {
-                    secondsElapsed++;
-                    let hrs = Math.floor(secondsElapsed / 3600).toString().
+        // Executa a conexão ao carregar a página
+        connectOBS();
+    </script>
+</body>
+</html>
