@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Danh Thiếp Điện Tử - Tùy Chỉnh</title>
+    <title>Danh Thiếp Điện Tử - Đổi Mật Khẩu & Quản Lý</title>
     <!-- Thư viện FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -34,7 +34,7 @@
             position: relative;
         }
 
-        /* Nút bật/tắt chế độ chỉnh sửa cho chủ sở hữu */
+        /* Nút bật/tắt chế độ quản lý */
         .owner-toggle-btn {
             position: fixed;
             bottom: 20px;
@@ -156,6 +156,7 @@
         .btn-link.zalo:hover { background: #0068ff; border-color: #0068ff; }
         .btn-link.phone:hover { background: #28a745; border-color: #28a745; }
         .btn-link.email:hover { background: #ea4335; border-color: #ea4335; }
+        .btn-link.linkedin:hover { background: #0077b5; border-color: #0077b5; }
 
         /* Hiệu ứng khi bật chế độ chỉnh sửa */
         body.editing [contenteditable="true"] {
@@ -175,13 +176,83 @@
         body.editing .edit-hint {
             display: block;
         }
+
+        /* Giao diện Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: #fff;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            text-align: left;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 18px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 4px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-actions button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-save-modal { background: #28a745; color: #fff; }
+        .btn-cancel-modal { background: #6c757d; color: #fff; }
     </style>
 </head>
 <body>
 
-    <!-- Nút kích hoạt chỉnh sửa dành cho chủ sở hữu -->
-    <button class="owner-toggle-btn" onclick="toggleEditMode()">
-        <i class="fa-solid fa-pen-to-square" id="edit-icon"></i> <span id="edit-btn-text">Chế độ Chủ sở hữu</span>
+    <!-- Nút kích hoạt đăng nhập quản lý -->
+    <button class="owner-toggle-btn" onclick="handleOwnerAccess()">
+        <i class="fa-solid fa-lock" id="edit-icon"></i> <span id="edit-btn-text">Quản Lý Danh Thiếp</span>
     </button>
 
     <div class="card-container">
@@ -192,57 +263,141 @@
             </div>
         </div>
 
-        <!-- Thông tin cá nhân (Có thể chỉnh sửa khi bật chế độ Owner) -->
+        <!-- Thông tin cá nhân -->
         <div class="card-body">
             <h1 class="name" id="card-name" contenteditable="false">Nguyễn Văn A</h1>
             <p class="title" id="card-title" contenteditable="false">Chuyên Viên Phát Triển Phần Mềm</p>
             <p class="bio" id="card-bio" contenteditable="false">Xin chào! Tôi là lập trình viên đam mê tạo ra các giải pháp công nghệ tối ưu và trải nghiệm người dùng tuyệt vời.</p>
 
-            <p class="edit-hint">💡 Đang ở chế độ chỉnh sửa: Bạn có thể click trực tiếp vào chữ ở trên để sửa, hoặc dùng nút bên dưới để đổi Link/Ảnh.</p>
+            <p class="edit-hint">💡 Đang mở khóa quản lý: Click vào chữ để sửa trực tiếp phía trên.</p>
 
             <!-- Các nút liên hệ/mạng xã hội -->
             <div class="links-container" style="margin-top: 15px;">
                 <a href="tel:0123456789" id="link-phone" class="btn-link phone">
-                    <i class="fa-solid fa-phone"></i> Gọi Điện Thoại
+                    <i class="fa-solid fa-phone"></i> <span id="txt-phone">Gọi Điện Thoại</span>
                 </a>
                 <a href="mailto:email@example.com" id="link-email" class="btn-link email">
-                    <i class="fa-solid fa-envelope"></i> Gửi Email
+                    <i class="fa-solid fa-envelope"></i> <span id="txt-email">Gửi Email</span>
                 </a>
                 <a href="https://zalo.me/0123456789" id="link-zalo" target="_blank" class="btn-link zalo">
-                    <i class="fa-solid fa-comment-dots"></i> Chat Zalo
+                    <i class="fa-solid fa-comment-dots"></i> <span id="txt-zalo">Chat Zalo</span>
                 </a>
                 <a href="https://facebook.com" id="link-fb" target="_blank" class="btn-link facebook">
-                    <i class="fa-brands fa-facebook"></i> Facebook Cá Nhân
+                    <i class="fa-brands fa-facebook"></i> <span id="txt-fb">Facebook Cá Nhân</span>
+                </a>
+                <a href="https://linkedin.com" id="link-linkedin" target="_blank" class="btn-link linkedin">
+                    <i class="fa-brands fa-linkedin"></i> <span id="txt-linkedin">LinkedIn</span>
                 </a>
                 
-                <!-- Nút tùy chỉnh link ẩn hiện khi ở chế độ chỉnh sửa -->
-                <button id="config-btn" onclick="updateLinksAndImage()" class="btn-link" style="display:none; background: #6c757d; color: white; cursor: pointer;">
-                    <i class="fa-solid fa-gear"></i> Cập nhật Link & Ảnh đại diện
+                <!-- Nút mở bảng chỉnh sửa liên lạc -->
+                <button id="config-btn" onclick="openContactModal()" class="btn-link" style="display:none; background: #6c757d; color: white; cursor: pointer;">
+                    <i class="fa-solid fa-address-book"></i> Chỉnh sửa Liên lạc & Mật khẩu
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- Bảng Modal chỉnh sửa Liên lạc, Ảnh & Mật khẩu -->
+    <div class="modal-overlay" id="contactModal">
+        <div class="modal-content">
+            <h3>⚙️ Quản lý Thông tin & Bảo mật</h3>
+            
+            <div class="form-group">
+                <label>Link Ảnh Đại Diện (URL):</label>
+                <input type="text" id="input-img">
+            </div>
+            <div class="form-group">
+                <label>Số Điện Thoại:</label>
+                <input type="text" id="input-phone">
+            </div>
+            <div class="form-group">
+                <label>Địa Chỉ Email:</label>
+                <input type="text" id="input-email">
+            </div>
+            <div class="form-group">
+                <label>Số Zalo / Link Zalo:</label>
+                <input type="text" id="input-zalo">
+            </div>
+            <div class="form-group">
+                <label>Link Facebook:</label>
+                <input type="text" id="input-fb">
+            </div>
+            <div class="form-group">
+                <label>Link LinkedIn:</label>
+                <input type="text" id="input-linkedin">
+            </div>
+            <div class="form-group" style="background: #fff8e1; padding: 8px; border-radius: 6px; border: 1px dashed #ffc107;">
+                <label style="color: #856404;">🔑 Đổi Mật Khẩu Quản Lý Mới:</label>
+                <input type="password" id="input-password" placeholder="Bỏ trống nếu không đổi">
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-cancel-modal" onclick="closeContactModal()">Hủy</button>
+                <button class="btn-save-modal" onclick="saveContactChanges()">Lưu Thông Tin</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Khi trang tải xong, kiểm tra xem đã có dữ liệu lưu trước đó chưa
+        // Khi trang tải xong, khôi phục dữ liệu từ localStorage
         window.onload = function() {
             if(localStorage.getItem('card_name')) document.getElementById('card-name').innerText = localStorage.getItem('card_name');
             if(localStorage.getItem('card_title')) document.getElementById('card-title').innerText = localStorage.getItem('card_title');
             if(localStorage.getItem('card_bio')) document.getElementById('card-bio').innerText = localStorage.getItem('card_bio');
+            
             if(localStorage.getItem('card_img')) document.getElementById('profile-img').src = localStorage.getItem('card_img');
             
-            if(localStorage.getItem('phone_num')) document.getElementById('link-phone').href = "tel:" + localStorage.getItem('phone_num');
-            if(localStorage.getItem('email_val')) document.getElementById('link-email').href = "mailto:" + localStorage.getItem('email_val');
-            if(localStorage.getItem('zalo_num')) document.getElementById('link-zalo').href = "https://zalo.me/" + localStorage.getItem('zalo_num');
-            if(localStorage.getItem('fb_url')) document.getElementById('link-fb').href = localStorage.getItem('fb_url');
+            if(localStorage.getItem('phone_num')) {
+                document.getElementById('link-phone').href = "tel:" + localStorage.getItem('phone_num');
+                document.getElementById('txt-phone').innerText = "Gọi: " + localStorage.getItem('phone_num');
+            }
+            if(localStorage.getItem('email_val')) {
+                document.getElementById('link-email').href = "mailto:" + localStorage.getItem('email_val');
+                document.getElementById('txt-email').innerText = localStorage.getItem('email_val');
+            }
+            if(localStorage.getItem('zalo_num')) {
+                document.getElementById('link-zalo').href = "https://zalo.me/" + localStorage.getItem('zalo_num');
+            }
+            if(localStorage.getItem('fb_url')) {
+                document.getElementById('link-fb').href = localStorage.getItem('fb_url');
+            }
+            if(localStorage.getItem('linkedin_url')) {
+                document.getElementById('link-linkedin').href = localStorage.getItem('linkedin_url');
+            }
         };
 
         let isEditing = false;
 
-        function toggleEditMode() {
-            isEditing = !isEditing;
-            document.body.classList.toggle('editing', isEditing);
-            
+        function handleOwnerAccess() {
+            // Lấy mật khẩu từ localStorage, nếu chưa có thì dùng mặc định "123456"
+            let currentAdminPassword = localStorage.getItem('admin_pass') || "123456";
+
+            if (!isEditing) {
+                let passwordInput = prompt("Vui lòng nhập mật khẩu quản lý để chỉnh sửa:");
+                if (passwordInput === null) return; 
+
+                if (passwordInput === currentAdminPassword) {
+                    alert("Đăng nhập thành công!");
+                    isEditing = true;
+                    setEditModeState(true);
+                } else {
+                    alert("Mật khẩu không đúng!");
+                }
+            } else {
+                isEditing = false;
+                setEditModeState(false);
+
+                // Lưu văn bản trực tiếp trên thẻ
+                localStorage.setItem('card_name', document.getElementById('card-name').innerText);
+                localStorage.setItem('card_title', document.getElementById('card-title').innerText);
+                localStorage.setItem('card_bio', document.getElementById('card-bio').innerText);
+                
+                alert("Đã lưu thay đổi thành công!");
+            }
+        }
+
+        function setEditModeState(status) {
+            document.body.classList.toggle('editing', status);
             const nameEl = document.getElementById('card-name');
             const titleEl = document.getElementById('card-title');
             const bioEl = document.getElementById('card-bio');
@@ -250,8 +405,7 @@
             const btnText = document.getElementById('edit-btn-text');
             const editIcon = document.getElementById('edit-icon');
 
-            if (isEditing) {
-                // Bật chế độ sửa chữ trực tiếp
+            if (status) {
                 nameEl.contentEditable = "true";
                 titleEl.contentEditable = "true";
                 bioEl.contentEditable = "true";
@@ -259,57 +413,54 @@
                 btnText.innerText = "Lưu Thay Đổi";
                 editIcon.className = "fa-solid fa-floppy-disk";
             } else {
-                // Tắt và lưu lại vào bộ nhớ trình duyệt
                 nameEl.contentEditable = "false";
                 titleEl.contentEditable = "false";
                 bioEl.contentEditable = "false";
                 configBtn.style.display = "none";
-                btnText.innerText = "Chế độ Chủ sở hữu";
-                editIcon.className = "fa-solid fa-pen-to-square";
-
-                // Lưu dữ liệu text vào localStorage
-                localStorage.setItem('card_name', nameEl.innerText);
-                localStorage.setItem('card_title', titleEl.innerText);
-                localStorage.setItem('card_bio', bioEl.innerText);
-                
-                alert("Đã lưu thông tin danh thiếp thành công!");
+                btnText.innerText = "Quản Lý Danh Thiếp";
+                editIcon.className = "fa-solid fa-lock";
             }
         }
 
-        // Hàm hỗ trợ đổi Link liên kết và Ảnh đại diện
-        function updateLinksAndImage() {
-            let newImg = prompt("Nhập đường dẫn URL ảnh đại diện mới của bạn:", document.getElementById('profile-img').src);
-            if (newImg) {
-                document.getElementById('profile-img').src = newImg;
-                localStorage.setItem('card_img', newImg);
-            }
+        function openContactModal() {
+            document.getElementById('input-img').value = document.getElementById('profile-img').src;
+            document.getElementById('input-phone').value = localStorage.getItem('phone_num') || "0123456789";
+            document.getElementById('input-email').value = localStorage.getItem('email_val') || "email@example.com";
+            document.getElementById('input-zalo').value = localStorage.getItem('zalo_num') || "0123456789";
+            document.getElementById('input-fb').value = localStorage.getItem('fb_url') || "https://facebook.com";
+            document.getElementById('input-linkedin').value = localStorage.getItem('linkedin_url') || "https://linkedin.com";
+            document.getElementById('input-password').value = ""; // Để trống ô mật khẩu mới khi vừa mở
 
-            let newPhone = prompt("Nhập số điện thoại mới (dùng khi gọi):", "0123456789");
-            if (newPhone) {
-                document.getElementById('link-phone').href = "tel:" + newPhone;
-                localStorage.setItem('phone_num', newPhone);
-            }
-
-            let newEmail = prompt("Nhập Email mới:", "email@example.com");
-            if (newEmail) {
-                document.getElementById('link-email').href = "mailto:" + newEmail;
-                localStorage.setItem('email_val', newEmail);
-            }
-
-            let newZalo = prompt("Nhập số Zalo (hoặc link Zalo):", "0123456789");
-            if (newZalo) {
-                document.getElementById('link-zalo').href = "https://zalo.me/" + newZalo;
-                localStorage.setItem('zalo_num', newZalo);
-            }
-
-            let newFb = prompt("Nhập đường dẫn Facebook cá nhân của bạn:", "https://facebook.com");
-            if (newFb) {
-                document.getElementById('link-fb').href = newFb;
-                localStorage.setItem('fb_url', newFb);
-            }
-            
-            alert("Đã cập nhật các liên kết mới!");
+            document.getElementById('contactModal').style.display = 'flex';
         }
-    </script>
-</body>
-</html>
+
+        function closeContactModal() {
+            document.getElementById('contactModal').style.display = 'none';
+        }
+
+        function saveContactChanges() {
+            let img = document.getElementById('input-img').value;
+            let phone = document.getElementById('input-phone').value;
+            let email = document.getElementById('input-email').value;
+            let zalo = document.getElementById('input-zalo').value;
+            let fb = document.getElementById('input-fb').value;
+            let linkedin = document.getElementById('input-linkedin').value;
+            let newPass = document.getElementById('input-password').value;
+
+            if(img) {
+                document.getElementById('profile-img').src = img;
+                localStorage.setItem('card_img', img);
+            }
+            if(phone) {
+                document.getElementById('link-phone').href = "tel:" + phone;
+                document.getElementById('txt-phone').innerText = "Gọi: " + phone;
+                localStorage.setItem('phone_num', phone);
+            }
+            if(email) {
+                document.getElementById('link-email').href = "mailto:" + email;
+                document.getElementById('txt-email').innerText = email;
+                localStorage.setItem('email_val', email);
+            }
+            if(zalo) {
+                document.getElementById('link-zalo').href = "https://zalo.me/" + zalo;
+                localStorage.setItem('z
