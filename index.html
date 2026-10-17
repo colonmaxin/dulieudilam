@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Danh Thiếp Điện Tử</title>
-    <!-- Thư viện FontAwesome để lấy icon mạng xã hội -->
+    <title>Danh Thiếp Điện Tử - Tùy Chỉnh</title>
+    <!-- Thư viện FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -34,7 +34,31 @@
             position: relative;
         }
 
-        /* Phần nền phía trên của danh thiếp */
+        /* Nút bật/tắt chế độ chỉnh sửa cho chủ sở hữu */
+        .owner-toggle-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #ffc107;
+            color: #333;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.3s;
+        }
+
+        .owner-toggle-btn:hover {
+            background: #e0a800;
+        }
+
+        /* Phần nền phía trên */
         .card-header {
             background: linear-gradient(135deg, #4facfe, #00f2fe);
             height: 120px;
@@ -72,6 +96,7 @@
             font-weight: 700;
             color: #333;
             margin-bottom: 5px;
+            outline: none;
         }
 
         .title {
@@ -81,6 +106,7 @@
             margin-bottom: 15px;
             text-transform: uppercase;
             letter-spacing: 1px;
+            outline: none;
         }
 
         .bio {
@@ -88,6 +114,7 @@
             color: #666;
             margin-bottom: 25px;
             line-height: 1.5;
+            outline: none;
         }
 
         /* Danh sách các nút liên kết */
@@ -117,7 +144,6 @@
             font-size: 18px;
         }
 
-        /* Hiệu ứng khi rê chuột vào nút */
         .btn-link:hover {
             background: #2a5298;
             color: #fff;
@@ -126,50 +152,164 @@
             box-shadow: 0 5px 15px rgba(42, 82, 152, 0.3);
         }
 
-        /* Màu riêng cho một số nút */
         .btn-link.facebook:hover { background: #1877f2; border-color: #1877f2; }
         .btn-link.zalo:hover { background: #0068ff; border-color: #0068ff; }
         .btn-link.phone:hover { background: #28a745; border-color: #28a745; }
         .btn-link.email:hover { background: #ea4335; border-color: #ea4335; }
+
+        /* Hiệu ứng khi bật chế độ chỉnh sửa */
+        body.editing [contenteditable="true"] {
+            border: 2px dashed #0077b5;
+            background: #f0f8ff;
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+        
+        .edit-hint {
+            display: none;
+            font-size: 12px;
+            color: #d9534f;
+            margin-top: 10px;
+            font-style: italic;
+        }
+        body.editing .edit-hint {
+            display: block;
+        }
     </style>
 </head>
 <body>
+
+    <!-- Nút kích hoạt chỉnh sửa dành cho chủ sở hữu -->
+    <button class="owner-toggle-btn" onclick="toggleEditMode()">
+        <i class="fa-solid fa-pen-to-square" id="edit-icon"></i> <span id="edit-btn-text">Chế độ Chủ sở hữu</span>
+    </button>
 
     <div class="card-container">
         <!-- Banner trên -->
         <div class="card-header">
             <div class="profile-img-container">
-                <!-- Thay link ảnh của bạn vào thuộc tính src -->
-                <img src="https://via.placeholder.com/150" alt="Ảnh đại diện">
+                <img id="profile-img" src="https://via.placeholder.com/150" alt="Ảnh đại diện">
             </div>
         </div>
 
-        <!-- Thông tin cá nhân -->
+        <!-- Thông tin cá nhân (Có thể chỉnh sửa khi bật chế độ Owner) -->
         <div class="card-body">
-            <h1 class="name">Nguyễn Văn A</h1>
-            <p class="title">Chuyên Viên Phát Triển Phần Mềm</p>
-            <p class="bio">Xin chào! Tôi là lập trình viên đam mê tạo ra các giải pháp công nghệ tối ưu và trải nghiệm người dùng tuyệt vời.</p>
+            <h1 class="name" id="card-name" contenteditable="false">Nguyễn Văn A</h1>
+            <p class="title" id="card-title" contenteditable="false">Chuyên Viên Phát Triển Phần Mềm</p>
+            <p class="bio" id="card-bio" contenteditable="false">Xin chào! Tôi là lập trình viên đam mê tạo ra các giải pháp công nghệ tối ưu và trải nghiệm người dùng tuyệt vời.</p>
+
+            <p class="edit-hint">💡 Đang ở chế độ chỉnh sửa: Bạn có thể click trực tiếp vào chữ ở trên để sửa, hoặc dùng nút bên dưới để đổi Link/Ảnh.</p>
 
             <!-- Các nút liên hệ/mạng xã hội -->
-            <div class="links-container">
-                <a href="tel:0123456789" class="btn-link phone">
+            <div class="links-container" style="margin-top: 15px;">
+                <a href="tel:0123456789" id="link-phone" class="btn-link phone">
                     <i class="fa-solid fa-phone"></i> Gọi Điện Thoại
                 </a>
-                <a href="mailto:email@example.com" class="btn-link email">
+                <a href="mailto:email@example.com" id="link-email" class="btn-link email">
                     <i class="fa-solid fa-envelope"></i> Gửi Email
                 </a>
-                <a href="https://zalo.me/0123456789" target="_blank" class="btn-link zalo">
+                <a href="https://zalo.me/0123456789" id="link-zalo" target="_blank" class="btn-link zalo">
                     <i class="fa-solid fa-comment-dots"></i> Chat Zalo
                 </a>
-                <a href="https://facebook.com" target="_blank" class="btn-link facebook">
+                <a href="https://facebook.com" id="link-fb" target="_blank" class="btn-link facebook">
                     <i class="fa-brands fa-facebook"></i> Facebook Cá Nhân
                 </a>
-                <a href="https://linkedin.com" target="_blank" class="btn-link">
-                    <i class="fa-brands fa-linkedin"></i> LinkedIn
-                </a>
+                
+                <!-- Nút tùy chỉnh link ẩn hiện khi ở chế độ chỉnh sửa -->
+                <button id="config-btn" onclick="updateLinksAndImage()" class="btn-link" style="display:none; background: #6c757d; color: white; cursor: pointer;">
+                    <i class="fa-solid fa-gear"></i> Cập nhật Link & Ảnh đại diện
+                </button>
             </div>
         </div>
     </div>
 
+    <script>
+        // Khi trang tải xong, kiểm tra xem đã có dữ liệu lưu trước đó chưa
+        window.onload = function() {
+            if(localStorage.getItem('card_name')) document.getElementById('card-name').innerText = localStorage.getItem('card_name');
+            if(localStorage.getItem('card_title')) document.getElementById('card-title').innerText = localStorage.getItem('card_title');
+            if(localStorage.getItem('card_bio')) document.getElementById('card-bio').innerText = localStorage.getItem('card_bio');
+            if(localStorage.getItem('card_img')) document.getElementById('profile-img').src = localStorage.getItem('card_img');
+            
+            if(localStorage.getItem('phone_num')) document.getElementById('link-phone').href = "tel:" + localStorage.getItem('phone_num');
+            if(localStorage.getItem('email_val')) document.getElementById('link-email').href = "mailto:" + localStorage.getItem('email_val');
+            if(localStorage.getItem('zalo_num')) document.getElementById('link-zalo').href = "https://zalo.me/" + localStorage.getItem('zalo_num');
+            if(localStorage.getItem('fb_url')) document.getElementById('link-fb').href = localStorage.getItem('fb_url');
+        };
+
+        let isEditing = false;
+
+        function toggleEditMode() {
+            isEditing = !isEditing;
+            document.body.classList.toggle('editing', isEditing);
+            
+            const nameEl = document.getElementById('card-name');
+            const titleEl = document.getElementById('card-title');
+            const bioEl = document.getElementById('card-bio');
+            const configBtn = document.getElementById('config-btn');
+            const btnText = document.getElementById('edit-btn-text');
+            const editIcon = document.getElementById('edit-icon');
+
+            if (isEditing) {
+                // Bật chế độ sửa chữ trực tiếp
+                nameEl.contentEditable = "true";
+                titleEl.contentEditable = "true";
+                bioEl.contentEditable = "true";
+                configBtn.style.display = "flex";
+                btnText.innerText = "Lưu Thay Đổi";
+                editIcon.className = "fa-solid fa-floppy-disk";
+            } else {
+                // Tắt và lưu lại vào bộ nhớ trình duyệt
+                nameEl.contentEditable = "false";
+                titleEl.contentEditable = "false";
+                bioEl.contentEditable = "false";
+                configBtn.style.display = "none";
+                btnText.innerText = "Chế độ Chủ sở hữu";
+                editIcon.className = "fa-solid fa-pen-to-square";
+
+                // Lưu dữ liệu text vào localStorage
+                localStorage.setItem('card_name', nameEl.innerText);
+                localStorage.setItem('card_title', titleEl.innerText);
+                localStorage.setItem('card_bio', bioEl.innerText);
+                
+                alert("Đã lưu thông tin danh thiếp thành công!");
+            }
+        }
+
+        // Hàm hỗ trợ đổi Link liên kết và Ảnh đại diện
+        function updateLinksAndImage() {
+            let newImg = prompt("Nhập đường dẫn URL ảnh đại diện mới của bạn:", document.getElementById('profile-img').src);
+            if (newImg) {
+                document.getElementById('profile-img').src = newImg;
+                localStorage.setItem('card_img', newImg);
+            }
+
+            let newPhone = prompt("Nhập số điện thoại mới (dùng khi gọi):", "0123456789");
+            if (newPhone) {
+                document.getElementById('link-phone').href = "tel:" + newPhone;
+                localStorage.setItem('phone_num', newPhone);
+            }
+
+            let newEmail = prompt("Nhập Email mới:", "email@example.com");
+            if (newEmail) {
+                document.getElementById('link-email').href = "mailto:" + newEmail;
+                localStorage.setItem('email_val', newEmail);
+            }
+
+            let newZalo = prompt("Nhập số Zalo (hoặc link Zalo):", "0123456789");
+            if (newZalo) {
+                document.getElementById('link-zalo').href = "https://zalo.me/" + newZalo;
+                localStorage.setItem('zalo_num', newZalo);
+            }
+
+            let newFb = prompt("Nhập đường dẫn Facebook cá nhân của bạn:", "https://facebook.com");
+            if (newFb) {
+                document.getElementById('link-fb').href = newFb;
+                localStorage.setItem('fb_url', newFb);
+            }
+            
+            alert("Đã cập nhật các liên kết mới!");
+        }
+    </script>
 </body>
 </html>
