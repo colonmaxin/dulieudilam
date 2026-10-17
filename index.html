@@ -3,367 +3,398 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TikTok Live Studio - Samsung DeX Mode</title>
-    <!-- FontAwesome cho icon -->
+    <title>OBS Studio - Web Simulator</title>
+    <!-- FontAwesome cho các icon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --obs-bg: #1e1e1e;
+            --obs-panel: #2d2d2d;
+            --obs-border: #444;
+            --obs-accent: #007acc;
+            --obs-text: #cccccc;
+            --obs-live: #e74c3c;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
-            background-color: #0e0e0e;
-            color: #ffffff;
+            background-color: var(--obs-bg);
+            color: var(--obs-text);
             height: 100vh;
             display: flex;
+            flex-direction: column;
             overflow: hidden;
+            user-select: none;
         }
 
-        /* --- THANH MENU TRÁI (Dành cho DeX rộng rãi) --- */
-        .sidebar {
-            width: 70px;
-            background-color: #1a1a1a;
+        /* --- TOP MENU BAR --- */
+        .top-menu {
+            height: 30px;
+            background-color: #252526;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            padding-top: 20px;
-            border-right: 1px solid #333;
-        }
-
-        .sidebar-icon {
-            color: #888;
-            font-size: 20px;
-            margin-bottom: 25px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .sidebar-icon:hover, .sidebar-icon.active {
-            color: #fe2c55;
-        }
-
-        /* --- KHUNG CHÍNH (LAYOUT SAMSUNG DEX) --- */
-        .main-container {
-            flex: 1;
-            display: grid;
-            grid-template-columns: 320px 1fr 350px; /* Cột trái: Điều khiển | Giữa: Màn hình Live chính | Phải: Chat & Tương tác */
-            height: 100vh;
-        }
-
-        /* Cột 1: Bảng điều khiển Live */
-        .control-panel {
-            background-color: #121212;
-            border-right: 1px solid #222;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            overflow-y: auto;
-        }
-
-        .panel-section h3 {
-            font-size: 14px;
-            color: #888;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-
-        .input-group {
-            margin-bottom: 12px;
-        }
-
-        .input-group label {
-            display: block;
+            padding: 0 10px;
             font-size: 12px;
-            margin-bottom: 5px;
-            color: #ccc;
+            border-bottom: 1px solid var(--obs-border);
         }
-
-        .input-group input, .input-group textarea {
-            width: 100%;
-            background: #222;
-            border: 1px solid #333;
-            border-radius: 6px;
-            padding: 10px;
-            color: white;
-            font-size: 14px;
-        }
-
-        .input-group textarea {
-            resize: none;
-            height: 80px;
-        }
-
-        .btn-go-live {
-            background: #fe2c55;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 16px;
+        .top-menu span {
+            padding: 0 10px;
             cursor: pointer;
-            width: 100%;
-            transition: 0.2s;
+        }
+        .top-menu span:hover {
+            background-color: #3e3e42;
         }
 
-        .btn-go-live:hover {
-            background: #e11d43;
-        }
-
-        /* Cột 2: Màn hình Live chính (Chuẩn khung 9:16 nằm giữa) */
-        .live-preview-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #070707;
-            position: relative;
-            padding: 20px;
-        }
-
-        .phone-frame {
-            width: 100%;
-            max-width: 420px;
-            height: 100%;
-            max-height: 840px;
-            background: #000;
-            border-radius: 24px;
-            border: 4px solid #333;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        /* --- MAIN WORKSPACE --- */
+        .workspace {
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
-            justify-content: flex-end;
+            padding: 10px;
+            gap: 10px;
         }
 
-        /* Giả lập Camera/Video Stream */
-        .camera-stream {
-            position: absolute;
-            top: 0;
-            left: 0;
+        /* Preview Area */
+        .preview-container {
+            flex-grow: 1;
+            background-color: #000;
+            border: 1px solid var(--obs-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+
+        #webcamVideo {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            background: #111;
+            transform: scaleX(-1); /* Lật gương cho tự nhiên */
         }
 
-        /* Overlay thông tin trên màn hình Live */
-        .live-overlay {
-            position: relative;
-            z-index: 2;
-            height: 100%;
+        .live-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background-color: var(--obs-live);
+            color: white;
+            padding: 4px 10px;
+            font-weight: bold;
+            font-size: 12px;
+            border-radius: 3px;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        .stream-timer {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 4px 8px;
+            font-family: monospace;
+            font-size: 13px;
+            border-radius: 3px;
+            display: none;
+        }
+
+        /* --- BOTTOM PANELS --- */
+        .bottom-panels {
+            height: 220px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .panel {
+            background-color: var(--obs-panel);
+            border: 1px solid var(--obs-border);
+            border-radius: 4px;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            padding: 15px;
-            pointer-events: none; /* Để click xuyên qua nếu cần */
         }
 
-        .live-header-info {
+        .panel-header {
+            background-color: #333;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: bold;
+            border-bottom: 1px solid var(--obs-border);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .live-tag {
-            background: rgba(254, 44, 85, 0.9);
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .viewer-count {
-            background: rgba(0,0,0,0.6);
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-        }
-
-        /* Cột 3: Khung Chat trực tiếp */
-        .chat-panel {
-            background-color: #121212;
-            border-left: 1px solid #222;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        .chat-header {
-            padding: 15px 20px;
-            border-bottom: 1px solid #222;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .chat-messages {
-            flex: 1;
-            padding: 15px;
+        .panel-body {
+            flex-grow: 1;
+            padding: 8px;
             overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .chat-message {
-            font-size: 13px;
-            line-height: 1.4;
-        }
-
-        .chat-user {
-            color: #888;
-            font-weight: bold;
-            margin-right: 5px;
-        }
-
-        .chat-input-area {
-            padding: 15px;
-            border-top: 1px solid #222;
-            display: flex;
-            gap: 10px;
-        }
-
-        .chat-input-area input {
-            flex: 1;
-            background: #222;
-            border: 1px solid #333;
-            border-radius: 6px;
-            padding: 8px 12px;
-            color: white;
             font-size: 13px;
         }
 
-        .chat-input-area button {
-            background: #333;
-            color: white;
-            border: none;
-            padding: 0 15px;
-            border-radius: 6px;
+        /* List Items (Scenes & Sources) */
+        .obs-list-item {
+            padding: 6px 8px;
+            margin-bottom: 3px;
+            background-color: #383838;
+            border-radius: 2px;
             cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .obs-list-item.active {
+            background-color: var(--obs-accent);
+            color: white;
+        }
+
+        /* Audio Mixer Meters */
+        .audio-channel {
+            margin-bottom: 10px;
+        }
+        .audio-label {
+            font-size: 11px;
+            margin-bottom: 3px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .audio-bar-container {
+            height: 8px;
+            background-color: #222;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+        .audio-bar {
+            height: 100%;
+            width: 30%;
+            background: linear-gradient(90deg, #2ecc71, #f1c40f, #e74c3c);
+            transition: width 0.1s ease;
+        }
+
+        /* Controls Panel */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            align-content: start;
+        }
+
+        .obs-btn {
+            background-color: #383838;
+            color: var(--obs-text);
+            border: 1px solid var(--obs-border);
+            padding: 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            text-align: center;
+            transition: 0.2s;
+        }
+
+        .obs-btn:hover {
+            background-color: #505050;
+        }
+
+        .obs-btn.primary {
+            background-color: #2e7d32;
+            color: white;
+            border-color: #388e3c;
+        }
+        .obs-btn.primary.is-live {
+            background-color: #c62828;
+            border-color: #d32f2f;
+        }
+
+        .obs-btn.secondary {
+            background-color: #1565c0;
+            color: white;
         }
     </style>
 </head>
 <body>
 
-    <!-- Thanh Menu Trái -->
-    <div class="sidebar">
-        <i class="fa-solid fa-house sidebar-icon active" title="Trang chủ"></i>
-        <i class="fa-solid fa-video sidebar-icon" title="Quản lý Live"></i>
-        <i class="fa-solid fa-chart-line sidebar-icon" title="Thống kê"></i>
-        <i class="fa-solid fa-gear sidebar-icon" title="Cài đặt"></i>
+    <!-- TOP MENU -->
+    <div class="top-menu">
+        <span>File</span>
+        <span>Edit</span>
+        <span>View</span>
+        <span>Profile</span>
+        <span>Scene Collection</span>
+        <span>Tools</span>
+        <span>Help</span>
     </div>
 
-    <!-- Layout chính chia 3 cột tối ưu cho DeX -->
-    <div class="main-container">
-        
-        <!-- Cột 1: Cài đặt phòng Live -->
-        <div class="control-panel">
-            <div class="panel-section">
-                <h3>Thiết lập phiên Live</h3>
-                <div class="input-group">
-                    <label>Tiêu đề Live</label>
-                    <input type="text" value="Hôm nay live gì ở Samsung DeX đâyyy 🔥">
-                </div>
-                <div class="input-group">
-                    <label>Chủ đề / Mục</label>
-                    <input type="text" value="Trò chuyện / Công nghệ">
-                </div>
-            </div>
-
-            <div class="panel-section">
-                <h3>Nguồn Camera / Thiết bị</h3>
-                <div class="input-group">
-                    <label>Chọn Camera</label>
-                    <select id="cameraSelect" style="width:100%; background:#222; border:1px solid #333; border-radius:6px; padding:10px; color:white;">
-                        <option>Camera Trước (Front)</option>
-                        <option>Camera Sau (Back)</option>
-                    </select>
-                </div>
-            </div>
-
-            <button class="btn-go-live" id="toggleLiveBtn" onclick="toggleLive()">BẮT ĐẦU PHÁT</button>
+    <!-- MAIN WORKSPACE -->
+    <div class="workspace">
+        <!-- PREVIEW SCREEN -->
+        <div class="preview-container">
+            <div class="live-badge" id="liveBadge"><i class="fa-solid fa-circle"></i> LIVE</div>
+            <div class="stream-timer" id="streamTimer">00:00:00</div>
+            <!-- Video hiển thị webcam trực tiếp -->
+            <video id="webcamVideo" autoplay playsinline muted></video>
         </div>
 
-        <!-- Cột 2: Màn hình hiển thị chính (Khung dọc 9:16) -->
-        <div class="live-preview-container">
-            <div class="phone-frame">
-                <!-- Thẻ Video giả lập nguồn camera thực tế -->
-                <video class="camera-stream" id="webcam" autoplay playsinline></video>
-                
-                <div class="live-overlay">
-                    <div class="live-header-info">
-                        <span class="live-tag"><i class="fa-solid fa-circle" style="font-size: 8px;"></i> LIVE</span>
-                        <span class="viewer-count"><i class="fa-solid fa-user"></i> 1,428</span>
+        <!-- BOTTOM PANELS -->
+        <div class="bottom-panels">
+            <!-- 1. Scenes -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span>Scenes</span>
+                    <i class="fa-solid fa-plus"></i>
+                </div>
+                <div class="panel-body">
+                    <div class="obs-list-item active">Cảnh chính (Webcam)</div>
+                    <div class="obs-list-item">Màn hình chia sẻ (Screen)</div>
+                    <div class="obs-list-item">Đang tạm nghỉ (BRB)</div>
+                </div>
+            </div>
+
+            <!-- 2. Sources -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span>Sources</span>
+                    <i class="fa-solid fa-plus"></i>
+                </div>
+                <div class="panel-body">
+                    <div class="obs-list-item active"><i class="fa-solid fa-video"></i> Video Capture Device</div>
+                    <div class="obs-list-item"><i class="fa-solid fa-volume-high"></i> Audio Output Capture</div>
+                    <div class="obs-list-item"><i class="fa-solid fa-image"></i> Logo / Overlay</div>
+                </div>
+            </div>
+
+            <!-- 3. Audio Mixer -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span>Audio Mixer</span>
+                </div>
+                <div class="panel-body">
+                    <div class="audio-channel">
+                        <div class="audio-label"><span>Mic/Aux</span> <span id="micVol">35dB</span></div>
+                        <div class="audio-bar-container">
+                            <div class="audio-bar" id="micBar" style="width: 45%;"></div>
+                        </div>
                     </div>
-                    <!-- Các hiệu ứng tương tác có thể chèn thêm ở đây -->
+                    <div class="audio-channel">
+                        <div class="audio-label"><span>Desktop Audio</span> <span>12dB</span></div>
+                        <div class="audio-bar-container">
+                            <div class="audio-bar" style="width: 20%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Controls -->
+            <div class="panel">
+                <div class="panel-header">
+                    <span>Controls</span>
+                </div>
+                <div class="panel-body controls-grid">
+                    <button class="obs-btn primary" id="streamBtn" onclick="toggleStream()">Start Streaming</button>
+                    <button class="obs-btn secondary" id="recBtn" onclick="toggleRecord()">Start Recording</button>
+                    <button class="obs-btn">Studio Mode</button>
+                    <button class="obs-btn" onclick="alert('Mở bảng cài đặt OBS chuẩn')">Settings</button>
+                    <button class="obs-btn" style="grid-column: span 2;" onclick="alert('Đã thoát khỏi ứng dụng OBS.')">Exit</button>
                 </div>
             </div>
         </div>
-
-        <!-- Cột 3: Bảng bình luận (Chat) -->
-        <div class="chat-panel">
-            <div class="chat-header">Bình luận trực tiếp</div>
-            <div class="chat-messages" id="chatBox">
-                <div class="chat-message"><span class="chat-user">ThanhNam:</span> Chào ad nhé!</div>
-                <div class="chat-message"><span class="chat-user">LanAnh99:</span> Giao diện này nhìn giống PC quá ta</div>
-                <div class="chat-message"><span class="chat-user">TechReview:</span> Đang dùng Samsung DeX hả bạn?</div>
-            </div>
-            <div class="chat-input-area">
-                <input type="text" id="messageInput" placeholder="Gửi bình luận...">
-                <button onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
-            </div>
-        </div>
-
     </div>
 
+    <!-- JAVASCRIPT XỬ LÝ -->
     <script>
-        // Kích hoạt Camera của điện thoại (hoặc webcam kết nối qua DeX)
-        const videoElement = document.getElementById('webcam');
+        // 1. Khởi động Webcam thực tế đưa vào màn hình Preview
+        const videoElement = document.getElementById('webcamVideo');
         
-        async function initCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { width: { ideal: 1080 }, height: { ideal: 1920 } }, 
-                    audio: true 
-                });
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then(stream => {
                 videoElement.srcObject = stream;
-            } catch (error) {
-                console.error("Không thể mở camera: ", error);
-                alert("Vui lòng cấp quyền sử dụng Camera để chạy giao diện Live.");
-            }
-        }
+            })
+            .catch(err => {
+                console.warn("Không tìm thấy Webcam hoặc bị từ chối quyền truy cập:", err);
+                // Tạo màn hình nền giả lập nếu không có webcam
+                videoElement.style.display = 'none';
+                let alertBox = document.createElement('div');
+                alertBox.style.color = '#fff';
+                alertBox.style.textAlign = 'center';
+                alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="font-size:30px; margin-bottom:10px;"></i><br>Không tìm thấy Webcam.<br>Hiển thị khung hình trống.';
+                document.querySelector('.preview-container').appendChild(alertBox);
+            });
 
-        initCamera();
+        // 2. Hiệu ứng thanh âm thanh nhảy múa tự nhiên (Audio Mixer)
+        setInterval(() => {
+            let randomWidth = Math.floor(Math.random() * 60) + 15; // dao động từ 15% đến 75%
+            let bar = document.getElementById('micBar');
+            if(bar) bar.style.width = randomWidth + '%';
+        }, 120);
 
-        // Xử lý nút Bắt đầu/Kết thúc Live
-        let isLive = false;
-        function toggleLive() {
-            const btn = document.getElementById('toggleLiveBtn');
-            isLive = !isLive;
-            if(isLive) {
-                btn.style.background = "#333";
-                btn.innerText = "KẾT THÚC";
+        // 3. Xử lý logic nút Start/Stop Streaming
+        let isStreaming = false;
+        let timerInterval = null;
+        let secondsElapsed = 0;
+
+        function toggleStream() {
+            const btn = document.getElementById('streamBtn');
+            const liveBadge = document.getElementById('liveBadge');
+            const streamTimer = document.getElementById('streamTimer');
+
+            isStreaming = !isStreaming;
+
+            if (isStreaming) {
+                btn.innerText = "Stop Streaming";
+                btn.classList.add("is-live");
+                liveBadge.style.display = "flex";
+                streamTimer.style.display = "block";
+                
+                // Bắt đầu đếm giờ
+                secondsElapsed = 0;
+                timerInterval = setInterval(() => {
+                    secondsElapsed++;
+                    let hrs = Math.floor(secondsElapsed / 3600).toString().padStart(2, '0');
+                    let mins = Math.floor((secondsElapsed % 3600) / 60).toString().padStart(2, '0');
+                    let secs = (secondsElapsed % 60).toString().padStart(2, '0');
+                    streamTimer.innerText = `${hrs}:${mins}:${secs}`;
+                }, 1000);
+
             } else {
-                btn.style.background = "#fe2c55";
-                btn.innerText = "BẮT ĐẦU PHÁT";
+                btn.innerText = "Start Streaming";
+                btn.classList.remove("is-live");
+                liveBadge.style.display = "none";
+                streamTimer.style.display = "none";
+                
+                // Dừng đếm giờ
+                clearInterval(timerInterval);
             }
         }
 
-        // Giả lập gửi tin nhắn chat nhanh
-        function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const chatBox = document.getElementById('chatBox');
-            if(input.value.trim() !== "") {
-                const msg = document.createElement('div');
-                msg.className = 'chat-message';
-                msg.innerHTML = `<span class="chat-user" style="color:#fe2c55;">Bạn:</span> ${input.value}`;
-                chatBox.appendChild(msg);
-                input.value = "";
-                chatBox.scrollTop = chatBox.scrollHeight;
+        // 4. Xử lý nút Ghi hình (Recording)
+        let isRecording = false;
+        function toggleRecord() {
+            const recBtn = document.getElementById('recBtn');
+            isRecording = !isRecording;
+            if(isRecording) {
+                recBtn.innerText = "Stop Recording";
+                recBtn.style.backgroundColor = "#8e44ad";
+            } else {
+                recBtn.innerText = "Start Recording";
+                recBtn.style.backgroundColor = "";
             }
         }
     </script>
