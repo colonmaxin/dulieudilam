@@ -3,132 +3,269 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mở ứng dụng từ HTML</title>
+    <title>AI Dịch Song Song Thời Gian Thực (Việt - Đài)</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        button {
-            padding: 12px 24px;
+        body {
+            background-color: #f0f2f5;
+            color: #333;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 24px;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        select, button {
+            padding: 10px 15px;
             font-size: 16px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            outline: none;
             cursor: pointer;
         }
+        select {
+            background: #fff;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
         button:hover {
-            background-color: #0056b3;
+            background-color: #2980b9;
+        }
+        button.recording {
+            background-color: #e74c3c;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+        .workspace {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+        .panel {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            height: 350px;
+        }
+        .panel h3 {
+            margin-bottom: 10px;
+            font-size: 16px;
+            color: #555;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 5px;
+        }
+        .text-box {
+            flex: 1;
+            background: white;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 16px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+        .status {
+            text-align: center;
+            margin-top: 15px;
+            font-style: italic;
+            color: #666;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
 
-    <h2>Đang chuyển hướng đến ứng dụng...</h2>
-    <p>Nếu trang không tự động mở, vui lòng nhấn nút bên dưới:</p>
+<div class="container">
+    <h1>🇻🇳 ⇄ 🇹🇼 Trợ Lý Dịch Song Song Thời Gian Thực</h1>
     
-    <!-- Nút thủ công nếu trình duyệt chặn tự động mở -->
-    <button onclick="openApp()">Mở ứng dụng</button>
+    <div class="controls">
+        <div>
+            <label for="sourceLang">Chọn ngôn ngữ bạn nói: </label>
+            <select id="sourceLang">
+                <option value="vi-VN">Tiếng Việt</option>
+                <option value="zh-TW">Tiếng Trung (Đài Loan - Phồn thể)</option>
+            </select>
+        </div>
+        <button id="btnToggle" onclick="toggleSpeechRecognition()">🎤 Bắt Đầu Nghe</button>
+        <button onclick="clearText()" style="background-color: #95a5a6;">🗑️ Xóa Lịch Sử</button>
+    </div>
 
-    <script>
-        function openApp() {
-            // Thay thế 'myapp://' bằng Custom URL Scheme của ứng dụng bạn muốn mở
-            // Ví dụ: 
-            // - YouTube: youtube://
-            // - Shopee: shopee://
-            // - Telegram: tg://
-            var appScheme = "myapp://path"; 
-            
-            // Đường dẫn dự phòng (Fallback) nếu chưa cài app (Ví dụ: link tải trên CH Play / App Store)
-            var fallbackUrl = "https://play.google.com/store/apps/details?id=ten_package_cua_ban";
+    <div class="workspace">
+        <!-- Khung Văn Bản Gốc -->
+        <div class="panel">
+            <h3 id="sourceTitle">Văn bản gốc (Tiếng Việt)</h3>
+            <div id="sourceText" class="text-box"></div>
+        </div>
+        <!-- Khung Văn Bản Dịch -->
+        <div class="panel">
+            <h3 id="targetTitle">Bản dịch (Tiếng Trung - Đài Loan)</h3>
+            <div id="targetText" class="text-box"></div>
+        </div>
+    </div>
 
-            // Thử mở app
-            window.location.href = appScheme;
+    <div id="status" class="status">Trạng thái: Đang chờ... Nhấn "Bắt Đầu Nghe" để nói.</div>
+</div>
 
-            // Thiết lập thời gian chờ, nếu sau 2 giây mà app không mở thì chuyển hướng đến Fallback URL
-            setTimeout(function() {
-                var hidden = window.document.hidden || window.document.webkitHidden;
-                if (!hidden) {
-                    // Người dùng có thể chưa cài app, chuyển đến trang tải
-                    window.location.href = fallbackUrl;
-                }
-            }, 2000);
+<script>
+    const sourceLangSelect = document.getElementById('sourceLang');
+    const btnToggle = document.getElementById('btnToggle');
+    const sourceTextBox = document.getElementById('sourceText');
+    const targetTextBox = document.getElementById('targetText');
+    const sourceTitle = document.getElementById('sourceTitle');
+    const targetTitle = document.getElementById('targetTitle');
+    const statusDiv = document.getElementById('status');
+
+    let recognition = null;
+    let isRecording = false;
+
+    // Cập nhật tiêu đề khi đổi ngôn ngữ nguồn
+    sourceLangSelect.addEventListener('change', () => {
+        if (sourceLangSelect.value === 'vi-VN') {
+            sourceTitle.innerText = "Văn bản gốc (Tiếng Việt)";
+            targetTitle.innerText = "Bản dịch (Tiếng Trung - Đài Loan)";
+        } else {
+            sourceTitle.innerText = "Văn bản gốc (Tiếng Trung - Đài Loan)";
+            targetTitle.innerText = "Bản dịch (Tiếng Việt)";
         }
+    });
 
-        // Tự động chạy hàm khi vừa load trang xong
-        window.onload = function() {
-            openApp();
-        };
-    </script>
-
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mở ứng dụng từ HTML</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
-        }
-        button {
-            padding: 12px 24px;
-            font-size: 16px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-    </style>
-</head>
-<body>
-
-    <h2>Đang chuyển hướng đến ứng dụng...</h2>
-    <p>Nếu trang không tự động mở, vui lòng nhấn nút bên dưới:</p>
+    // Khởi tạo Web Speech API
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     
-    <!-- Nút thủ công nếu trình duyệt chặn tự động mở -->
-    <button onclick="openApp()">Mở ứng dụng</button>
+    if (!SpeechRecognition) {
+        alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói! Vui lòng dùng Google Chrome.");
+    } else {
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
 
-    <script>
-        function openApp() {
-            // Thay thế 'myapp://' bằng Custom URL Scheme của ứng dụng bạn muốn mở
-            // Ví dụ: 
-            // - YouTube: youtube://
-            // - Shopee: shopee://
-            // - Telegram: tg://
-            var appScheme = "myapp://path"; 
-            
-            // Đường dẫn dự phòng (Fallback) nếu chưa cài app (Ví dụ: link tải trên CH Play / App Store)
-            var fallbackUrl = "https://play.google.com/store/apps/details?id=ten_package_cua_ban";
-
-            // Thử mở app
-            window.location.href = appScheme;
-
-            // Thiết lập thời gian chờ, nếu sau 2 giây mà app không mở thì chuyển hướng đến Fallback URL
-            setTimeout(function() {
-                var hidden = window.document.hidden || window.document.webkitHidden;
-                if (!hidden) {
-                    // Người dùng có thể chưa cài app, chuyển đến trang tải
-                    window.location.href = fallbackUrl;
-                }
-            }, 2000);
-        }
-
-        // Tự động chạy hàm khi vừa load trang xong
-        window.onload = function() {
-            openApp();
+        recognition.onstart = () => {
+            isRecording = true;
+            btnToggle.innerText = "⏹️ Dừng Nghe";
+            btnToggle.classList.add("recording");
+            statusDiv.innerText = "Trạng thái: Đang lắng nghe giọng nói của bạn...";
         };
-    </script>
+
+        recognition.onresult = async (event) => {
+            let interimTranscript = '';
+            let finalTranscript = '';
+
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    finalTranscript += event.results[i][0].transcript;
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
+                }
+            }
+
+            if (finalTranscript) {
+                sourceTextBox.innerText += finalTranscript + " ";
+                // Tiến hành dịch đoạn văn bản vừa nhận được
+                let translated = await translateText(finalTranscript, sourceLangSelect.value);
+                targetTextBox.innerText += translated + " ";
+                
+                // Tự động cuộn xuống cuối
+                sourceTextBox.scrollTop = sourceTextBox.scrollHeight;
+                targetTextBox.scrollTop = targetTextBox.scrollHeight;
+            }
+        };
+
+        recognition.onerror = (event) => {
+            statusDiv.innerText = "Lỗi nhận diện: " + event.error;
+        };
+
+        recognition.onend = () => {
+            if (isRecording) {
+                // Tự động restart nếu bị ngắt quãng ngắn
+                try { recognition.start(); } catch(e) {}
+            } else {
+                btnToggle.innerText = "🎤 Bắt Đầu Nghe";
+                btnToggle.classList.remove("recording");
+                statusDiv.innerText = "Trạng thái: Đã dừng.";
+            }
+        };
+    }
+
+    function toggleSpeechRecognition() {
+        if (!recognition) return;
+        if (isRecording) {
+            isRecording = false;
+            recognition.stop();
+        } else {
+            recognition.lang = sourceLangSelect.value;
+            recognition.start();
+        }
+    }
+
+    function clearText() {
+        sourceTextBox.innerText = "";
+        targetTextBox.innerText = "";
+    }
+
+    // Hàm gọi API dịch thuật miễn phí (Sử dụng MyMemory API hoặc bạn có thể thay bằng Google Translate API Key của bạn)
+    async function translateText(text, sourceLang) {
+        let targetLang = sourceLang === 'vi-VN' ? 'zh-TW' : 'vi';
+        // Chuẩn hóa mã ngôn ngữ cho API dịch
+        let apiSource = sourceLang === 'vi-VN' ? 'vi' : 'zh-TW';
+        let apiTarget = targetLang === 'zh-TW' ? 'zh-Hant' : 'vi'; // zh-Hant là chữ Phồn Thể (Đài Loan)
+
+        try {
+            let url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${apiSource}|${apiTarget}`;
+            let response = await fetch(url);
+            let data = await response.json();
+            if (data && data.responseData) {
+                return data.responseData.translatedText;
+            }
+        } catch (error) {
+            console.error("Lỗi dịch:", error);
+        }
+        return "[Lỗi dịch]";
+    }
+</script>
 
 </body>
 </html>
