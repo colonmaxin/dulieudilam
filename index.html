@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Browser 4in1 (Kéo thả & Đổi kích thước)</title>
+    <title>Multi-Browser (Cốc Cốc, Firefox, Google, UC)</title>
     
     <!-- Nhúng thư viện Gridstack.js CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.1.2/gridstack.min.css" rel="stylesheet"/>
@@ -54,9 +54,8 @@
             border: 1px solid #444;
         }
 
-        /* Thanh tiêu đề (dùng để kéo di chuyển ô) */
+        /* Thanh tiêu đề riêng cho từng trình duyệt */
         .browser-header {
-            background-color: #333;
             color: white;
             padding: 8px 12px;
             font-size: 13px;
@@ -67,6 +66,12 @@
             cursor: move;
             user-select: none;
         }
+
+        /* Màu đặc trưng cho từng trình duyệt */
+        .cococ-header { background-color: #00875a; }   /* Xanh Cốc Cốc */
+        .firefox-header { background-color: #ff7139; } /* Cam Firefox */
+        .google-header { background-color: #4285f4; }  /* Xanh Google */
+        .uc-header { background-color: #ff6600; }      /* Cam UC Browser */
 
         /* Khung iframe chứa trang web */
         .browser-content {
@@ -81,40 +86,40 @@
 <body>
 
     <div class="top-bar">
-        💡 <b>Hướng dẫn:</b> Kéo <b>thanh tiêu đề tối màu</b> để di chuyển ô | Kéo <b>các cạnh/góc viền</b> để thay đổi kích thước.
+        💡 <b>Hướng dẫn:</b> Kéo <b>thanh tiêu đề</b> để di chuyển ô | Kéo <b>các cạnh/góc viền</b> để thay đổi kích thước.
     </div>
 
     <!-- Khung lưới chính -->
     <div class="grid-stack">
-        <!-- Ô 1 -->
+        <!-- Ô 1: Cốc Cốc -->
         <div class="grid-stack-item" gs-x="0" gs-y="0" gs-w="6" gs-h="12">
             <div class="grid-stack-item-content">
-                <div class="browser-header">🌐 Trình duyệt 1: Wikipedia</div>
-                <iframe src="https://vi.wikipedia.org" class="browser-content"></iframe>
+                <div class="browser-header cococ-header">🟢 Cốc Cốc Browser</div>
+                <iframe src="https://coccoc.com/search" class="browser-content"></iframe>
             </div>
         </div>
 
-        <!-- Ô 2 -->
+        <!-- Ô 2: Firefox -->
         <div class="grid-stack-item" gs-x="6" gs-y="0" gs-w="6" gs-h="12">
             <div class="grid-stack-item-content">
-                <div class="browser-header">🌐 Trình duyệt 2: OpenStreetMap</div>
-                <iframe src="https://www.openstreetmap.org" class="browser-content"></iframe>
+                <div class="browser-header firefox-header">🦊 Firefox</div>
+                <iframe src="https://www.mozilla.org/vi/" class="browser-content"></iframe>
             </div>
         </div>
 
-        <!-- Ô 3 -->
+        <!-- Ô 3: Google -->
         <div class="grid-stack-item" gs-x="0" gs-y="12" gs-w="6" gs-h="12">
             <div class="grid-stack-item-content">
-                <div class="browser-header">🌐 Trình duyệt 3: Bing</div>
-                <iframe src="https://www.bing.com" class="browser-content"></iframe>
+                <div class="browser-header google-header">🌐 Google Search</div>
+                <iframe src="https://www.google.com/search?igu=1" class="browser-content"></iframe>
             </div>
         </div>
 
-        <!-- Ô 4 -->
+        <!-- Ô 4: UC Web -->
         <div class="grid-stack-item" gs-x="6" gs-y="12" gs-w="6" gs-h="12">
             <div class="grid-stack-item-content">
-                <div class="browser-header">🌐 Trình duyệt 4: Google Search</div>
-                <iframe src="https://www.google.com/search?igu=1" class="browser-content"></iframe>
+                <div class="browser-header uc-header">🐿️ UC Web</div>
+                <iframe src="https://ucweb.com" class="browser-content"></iframe>
             </div>
         </div>
     </div>
