@@ -98,7 +98,7 @@
         const urlInput = document.getElementById('urlInput');
         const balanceDisplay = document.getElementById('externalBalance');
 
-        // Tạo một trang web mẫu bằng Data URL để bạn có thể test trực tiếp ngay trên 1 file HTML mà không cần server ngoài
+        // Mô phỏng trang web có form đăng nhập và sau khi đăng nhập sẽ hiển thị số dư
         const sampleWebPageContent = `
             <!DOCTYPE html>
             <html lang="vi">
@@ -106,41 +106,53 @@
                 <meta charset="UTF-8">
                 <style>
                     body { font-family: Arial; padding: 20px; background: #f9f9f9; text-align: center; }
-                    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: inline-block; }
-                    button { background: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; margin-top: 10px; }
+                    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: inline-block; width: 300px; }
+                    input { width: 90%; padding: 8px; margin: 5px 0; }
+                    button { background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 10px; }
                 </style>
             </head>
             <body>
-                <div class="card">
-                    <h2>Trang Web Đích (Mẫu)</h2>
-                    <p>Số dư hiện tại của bạn: <strong id="myBalance" style="color: green; font-size: 20px;">1,500,000 VNĐ</strong></p>
-                    <button onclick="changeBalance()">Thay đổi số dư ngẫu nhiên</button>
+                <div class="card" id="loginBox">
+                    <h3>Đăng nhập hệ thống</h3>
+                    <input type="text" id="username" placeholder="Tên đăng nhập"><br>
+                    <input type="password" id="password" placeholder="Mật khẩu"><br>
+                    <button onclick="login()">Đăng nhập</button>
                 </div>
+
+                <div class="card" id="dashboardBox" style="display: none;">
+                    <h3>Trang Quản Trị</h3>
+                    <p>Số dư tài khoản: <strong id="myBalance" style="color: green; font-size: 20px;">2,500,000 VNĐ</strong></p>
+                    <button onclick="logout()" style="background: #e74c3c;">Đăng xuất</button>
+                </div>
+
                 <script>
                     function sendBalance() {
                         const balanceText = document.getElementById('myBalance').innerText;
                         window.parent.postMessage({ type: 'UPDATE_BALANCE', balance: balanceText }, '*');
                     }
-                    function changeBalance() {
-                        const randomNum = Math.floor(Math.random() * 9000000 + 1000000);
-                        document.getElementById('myBalance').innerText = randomNum.toLocaleString() + ' VNĐ';
-                        sendBalance();
+
+                    function login() {
+                        // Giả lập đăng nhập thành công
+                        document.getElementById('loginBox').style.display = 'none';
+                        document.getElementById('dashboardBox').style.display = 'block';
+                        sendBalance(); // Gửi số dư ra ngoài trình duyệt cha sau khi đăng nhập thành công
                     }
-                    // Gửi số dư ngay khi load xong
-                    window.onload = sendBalance;
+
+                    function logout() {
+                        document.getElementById('loginBox').style.display = 'block';
+                        document.getElementById('dashboardBox').style.display = 'none';
+                        window.parent.postMessage({ type: 'UPDATE_BALANCE', balance: 'Chưa đăng nhập' }, '*');
+                    }
                 <\/script>
             </body>
             </html>
         `;
 
-        // Chuyển nội dung mẫu thành dạng Data URL để nhúng thẳng vào iframe
         const sampleUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(sampleWebPageContent);
         
-        // Gán giá trị mặc định khi mở file
         urlInput.value = "Trang web mẫu nội bộ";
         webFrame.src = sampleUrl;
 
-        // Hàm tải trang
         function loadWebPage() {
             let url = urlInput.value.trim();
             if (url === "Trang web mẫu nội bộ" || url === "") {
@@ -154,7 +166,6 @@
             }
         }
 
-        // Tải lại trang
         function reloadPage() {
             webFrame.src = webFrame.src;
         }
