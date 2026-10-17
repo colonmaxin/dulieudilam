@@ -2,216 +2,133 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Multi-Browser + Auto Clicker Mobile</title>
-    
-    <!-- Nhúng Gridstack CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.1.2/gridstack.min.css" rel="stylesheet"/>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mở ứng dụng từ HTML</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        
-        body, html { 
-            height: 100%; 
-            font-family: Arial, sans-serif; 
-            background-color: #1e1e1e; 
-            overflow: hidden; 
-            position: fixed;
-            width: 100%;
-        }
-        
-        /* Bảng điều khiển Auto Click nổi trên cùng */
-        .auto-click-panel {
-            background-color: #222;
-            color: #fff;
-            padding: 6px 10px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 2px solid #ff4757;
-            height: 38px;
-            z-index: 9999;
-        }
-
-        .auto-click-panel input {
-            width: 50px;
-            padding: 2px 4px;
-            background: #444;
-            color: #fff;
-            border: 1px solid #666;
-            border-radius: 3px;
+        body {
+            font-family: Arial, sans-serif;
             text-align: center;
+            padding: 50px;
         }
-
-        .auto-click-panel button {
-            background-color: #ff4757;
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            background-color: #007bff;
             color: white;
             border: none;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-weight: bold;
+            border-radius: 5px;
             cursor: pointer;
         }
-
-        .auto-click-panel button.active {
-            background-color: #2ed573;
-        }
-
-        /* Khung lưới chính */
-        .grid-stack { 
-            background: #1e1e1e; 
-            height: calc(100vh - 38px); 
-        }
-
-        .grid-stack-item-content {
-            background-color: #ffffff; border-radius: 4px; display: flex;
-            flex-direction: column; overflow: hidden; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-            border: 1px solid #444;
-        }
-
-        .browser-header {
-            color: white; padding: 5px 8px; font-size: 11px; font-weight: bold;
-            display: flex; align-items: center; justify-content: space-between; 
-            cursor: move; user-select: none; height: 26px;
-        }
-
-        .cococ-header { background-color: #00875a; }
-        .firefox-header { background-color: #ff7139; }
-        .google-header { background-color: #4285f4; }
-        .uc-header { background-color: #ff6600; }
-
-        .browser-content { flex: 1; width: 100%; height: 100%; border: none; background-color: #fff; }
-
-        /* Hiệu ứng gợn sóng báo hiệu vị trí đang Auto Click */
-        .click-effect {
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #ff4757;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            animation: ping 0.5s ease-out forwards;
-            pointer-events: none;
-            z-index: 99999;
-        }
-
-        @keyframes ping {
-            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+        button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
 
-    <!-- Thanh điều khiển Auto Click -->
-    <div class="auto-click-panel">
-        <span>⚡ <b>Auto Click:</b></span>
-        <div>
-            Khoảng cách (ms): <input type="number" id="intervalInput" value="1000" step="100" min="100">
-        </div>
-        <button id="toggleBtn" onclick="toggleAutoClick()">BẮT ĐẦU</button>
-    </div>
-
-    <!-- 4 màn hình trình duyệt -->
-    <div class="grid-stack">
-        <div class="grid-stack-item" gs-id="browser-1" gs-x="0" gs-y="0" gs-w="6" gs-h="12">
-            <div class="grid-stack-item-content">
-                <div class="browser-header cococ-header">🟢 Cốc Cốc</div>
-                <iframe src="https://coccoc.com/search" class="browser-content"></iframe>
-            </div>
-        </div>
-
-        <div class="grid-stack-item" gs-id="browser-2" gs-x="6" gs-y="0" gs-w="6" gs-h="12">
-            <div class="grid-stack-item-content">
-                <div class="browser-header firefox-header">🦊 Firefox</div>
-                <iframe src="https://www.mozilla.org/vi/" class="browser-content"></iframe>
-            </div>
-        </div>
-
-        <div class="grid-stack-item" gs-id="browser-3" gs-x="0" gs-y="12" gs-w="6" gs-h="12">
-            <div class="grid-stack-item-content">
-                <div class="browser-header google-header">🌐 Google</div>
-                <iframe src="https://www.google.com/search?igu=1" class="browser-content"></iframe>
-            </div>
-        </div>
-
-        <div class="grid-stack-item" gs-id="browser-4" gs-x="6" gs-y="12" gs-w="6" gs-h="12">
-            <div class="grid-stack-item-content">
-                <div class="browser-header uc-header">🐿️ UC Web</div>
-                <iframe src="https://ucweb.com" class="browser-content"></iframe>
-            </div>
-        </div>
-    </div>
-
-    <!-- Thư viện Gridstack JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.1.2/gridstack-all.js"></script>
+    <h2>Đang chuyển hướng đến ứng dụng...</h2>
+    <p>Nếu trang không tự động mở, vui lòng nhấn nút bên dưới:</p>
+    
+    <!-- Nút thủ công nếu trình duyệt chặn tự động mở -->
+    <button onclick="openApp()">Mở ứng dụng</button>
 
     <script>
-        // Khởi tạo lưới Gridstack cho mobile
-        const grid = GridStack.init({
-            cellHeight: 'auto',
-            float: true,
-            disableResize: true,
-            minRow: 2,
-            maxRow: 2
-        });
-
-        let isAutoClicking = false;
-        let clickTimer = null;
-        let targetX = window.innerWidth / 2;  // Mặc định click ở giữa màn hình
-        let targetY = window.innerHeight / 2;
-
-        // Lắng nghe sự kiện chạm để chọn vị trí muốn Auto Click trên màn hình điện thoại
-        window.addEventListener('click', function(e) {
-            // Chỉ bắt sự kiện nếu bấm vào vùng thanh công cụ hoặc khoảng trống (tránh bấm nhầm trong iframe do bảo mật trình duyệt)
-            targetX = e.clientX;
-            targetY = e.clientY;
+        function openApp() {
+            // Thay thế 'myapp://' bằng Custom URL Scheme của ứng dụng bạn muốn mở
+            // Ví dụ: 
+            // - YouTube: youtube://
+            // - Shopee: shopee://
+            // - Telegram: tg://
+            var appScheme = "myapp://path"; 
             
-            // Hiển thị hiệu ứng chấm đỏ tại vị trí vừa chạm
-            showClickEffect(targetX, targetY);
-        });
+            // Đường dẫn dự phòng (Fallback) nếu chưa cài app (Ví dụ: link tải trên CH Play / App Store)
+            var fallbackUrl = "https://play.google.com/store/apps/details?id=ten_package_cua_ban";
 
-        function showClickEffect(x, y) {
-            const div = document.createElement('div');
-            div.className = 'click-effect';
-            div.style.left = x + 'px';
-            div.style.top = y + 'px';
-            document.body.appendChild(div);
-            setTimeout(() => div.remove(), 500);
+            // Thử mở app
+            window.location.href = appScheme;
+
+            // Thiết lập thời gian chờ, nếu sau 2 giây mà app không mở thì chuyển hướng đến Fallback URL
+            setTimeout(function() {
+                var hidden = window.document.hidden || window.document.webkitHidden;
+                if (!hidden) {
+                    // Người dùng có thể chưa cài app, chuyển đến trang tải
+                    window.location.href = fallbackUrl;
+                }
+            }, 2000);
         }
 
-        // Bật / Tắt Auto Click
-        function toggleAutoClick() {
-            const btn = document.getElementById('toggleBtn');
-            const intervalVal = parseInt(document.getElementById('intervalInput').value) || 1000;
-
-            isAutoClicking = !isAutoClicking;
-
-            if (isAutoClicking) {
-                btn.textContent = "DỪNG LẠI";
-                btn.classList.add('active');
-
-                // Bắt đầu vòng lặp click tự động
-                clickTimer = setInterval(() => {
-                    showClickEffect(targetX, targetY);
-                    
-                    // Thực hiện giả lập hành động click tại tọa độ (Lưu ý: Do chính sách CORS của thẻ iframe, 
-                    // mã nguồn web bên ngoài không thể trực tiếp click vào sâu bên trong trang web của bên thứ 3, 
-                    // nhưng tính năng này sẽ click liên tục trên bề mặt giao diện chính và các nút điều khiển).
-                    
-                    const element = document.elementFromPoint(targetX, targetY);
-                    if (element && element !== document.body) {
-                        element.click();
-                    }
-                }, intervalVal);
-
-            } else {
-                btn.textContent = "BẮT ĐẦU";
-                btn.classList.remove('active');
-                clearInterval(clickTimer);
-            }
-        }
+        // Tự động chạy hàm khi vừa load trang xong
+        window.onload = function() {
+            openApp();
+        };
     </script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mở ứng dụng từ HTML</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Đang chuyển hướng đến ứng dụng...</h2>
+    <p>Nếu trang không tự động mở, vui lòng nhấn nút bên dưới:</p>
+    
+    <!-- Nút thủ công nếu trình duyệt chặn tự động mở -->
+    <button onclick="openApp()">Mở ứng dụng</button>
+
+    <script>
+        function openApp() {
+            // Thay thế 'myapp://' bằng Custom URL Scheme của ứng dụng bạn muốn mở
+            // Ví dụ: 
+            // - YouTube: youtube://
+            // - Shopee: shopee://
+            // - Telegram: tg://
+            var appScheme = "myapp://path"; 
+            
+            // Đường dẫn dự phòng (Fallback) nếu chưa cài app (Ví dụ: link tải trên CH Play / App Store)
+            var fallbackUrl = "https://play.google.com/store/apps/details?id=ten_package_cua_ban";
+
+            // Thử mở app
+            window.location.href = appScheme;
+
+            // Thiết lập thời gian chờ, nếu sau 2 giây mà app không mở thì chuyển hướng đến Fallback URL
+            setTimeout(function() {
+                var hidden = window.document.hidden || window.document.webkitHidden;
+                if (!hidden) {
+                    // Người dùng có thể chưa cài app, chuyển đến trang tải
+                    window.location.href = fallbackUrl;
+                }
+            }, 2000);
+        }
+
+        // Tự động chạy hàm khi vừa load trang xong
+        window.onload = function() {
+            openApp();
+        };
+    </script>
+
 </body>
 </html>
