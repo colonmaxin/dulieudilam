@@ -3,568 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Danh Thiếp Điện Tử - Online Database</title>
-    <!-- Thư viện FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Multi-Browser 4in1 (Kéo thả & Đổi kích thước)</title>
     
-    <!-- Thư viện Firebase SDK (Firestore) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!-- Nhúng thư viện Gridstack.js CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.1.2/gridstack.min.css" rel="stylesheet"/>
 
     <style>
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .card-container {
-            width: 100%;
-            max-width: 400px;
-            background: #ffffff;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-            text-align: center;
-            position: relative;
-        }
-
-        /* Nút bật/tắt chế độ quản lý */
-        .owner-toggle-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #ffc107;
-            color: #333;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 30px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: 0.3s;
-        }
-
-        .owner-toggle-btn:hover {
-            background: #e0a800;
-        }
-
-        /* Phần nền phía trên (Banner) */
-        .card-header {
-            background: linear-gradient(135deg, #4facfe, #00f2fe);
-            height: 120px;
-            position: relative;
-            background-size: cover;
-            background-position: center;
-        }
-
-        /* Ảnh đại diện */
-        .profile-img-container {
-            width: 110px;
-            height: 110px;
-            border-radius: 50%;
-            background: #fff;
-            padding: 5px;
-            position: absolute;
-            bottom: -55px;
-            left: 50%;
-            transform: translateX(-50%);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .profile-img-container img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        /* Nội dung thông tin */
-        .card-body {
-            padding: 70px 30px 30px 30px;
-        }
-
-        .name {
-            font-size: 24px;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 5px;
-            outline: none;
-        }
-
-        .title {
-            font-size: 14px;
-            color: #0077b5;
-            font-weight: 600;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            outline: none;
-        }
-
-        .bio {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 25px;
-            line-height: 1.5;
-            outline: none;
-        }
-
-        /* Danh sách các nút liên kết */
-        .links-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .btn-link {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            background: #f8f9fa;
-            color: #333;
-            text-decoration: none;
-            padding: 12px 20px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 14px;
-            border: 1px solid #e1e4e8;
-            transition: all 0.3s ease;
-        }
-
-        .btn-link i {
-            font-size: 18px;
-        }
-
-        .btn-link:hover {
-            background: #2a5298;
-            color: #fff;
-            border-color: #2a5298;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(42, 82, 152, 0.3);
-        }
-
-        .btn-link.facebook:hover { background: #1877f2; border-color: #1877f2; }
-        .btn-link.zalo:hover { background: #0068ff; border-color: #0068ff; }
-        .btn-link.phone:hover { background: #28a745; border-color: #28a745; }
-        .btn-link.email:hover { background: #ea4335; border-color: #ea4335; }
-        .btn-link.linkedin:hover { background: #0077b5; border-color: #0077b5; }
-
-        /* Hiệu ứng khi bật chế độ chỉnh sửa */
-        body.editing [contenteditable="true"] {
-            border: 2px dashed #0077b5;
-            background: #f0f8ff;
-            padding: 2px 5px;
-            border-radius: 4px;
         }
         
-        .edit-hint {
-            display: none;
-            font-size: 12px;
-            color: #d9534f;
-            margin-top: 10px;
-            font-style: italic;
-        }
-        body.editing .edit-hint {
-            display: block;
+        body, html {
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            overflow: hidden;
         }
 
-        /* Giao diện Modal */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .modal-content {
-            background: #fff;
-            width: 100%;
-            max-width: 400px;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            text-align: left;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-content h3 {
-            margin-bottom: 15px;
-            color: #333;
-            font-size: 18px;
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 8px;
-        }
-
-        .form-group {
-            margin-bottom: 12px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 12px;
-            font-weight: bold;
-            color: #555;
-            margin-bottom: 4px;
-        }
-
-        .form-group input[type="text"], .form-group input[type="password"] {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-
-        .form-group input[type="file"] {
+        /* Thanh hướng dẫn trên cùng */
+        .top-bar {
+            background-color: #2d2d2d;
+            color: #ddd;
+            padding: 8px 15px;
             font-size: 13px;
+            text-align: center;
+            border-bottom: 1px solid #444;
+            height: 35px;
         }
 
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
+        .top-bar b {
+            color: #fff;
         }
 
-        .modal-actions button {
-            padding: 8px 16px;
-            border: none;
+        /* Khung chứa lưới Gridstack */
+        .grid-stack {
+            background: #1e1e1e;
+            height: calc(100vh - 35px);
+        }
+
+        /* Giao diện từng ô trình duyệt */
+        .grid-stack-item-content {
+            background-color: #ffffff;
             border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            border: 1px solid #444;
         }
 
-        .btn-save-modal { background: #28a745; color: #fff; }
-        .btn-cancel-modal { background: #6c757d; color: #fff; }
+        /* Thanh tiêu đề (dùng để kéo di chuyển ô) */
+        .browser-header {
+            background-color: #333;
+            color: white;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: move;
+            user-select: none;
+        }
+
+        /* Khung iframe chứa trang web */
+        .browser-content {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: #fff;
+        }
     </style>
 </head>
 <body>
 
-    <!-- Nút kích hoạt đăng nhập quản lý -->
-    <button class="owner-toggle-btn" onclick="handleOwnerAccess()">
-        <i class="fa-solid fa-lock" id="edit-icon"></i> <span id="edit-btn-text">Quản Lý Danh Thiếp</span>
-    </button>
+    <div class="top-bar">
+        💡 <b>Hướng dẫn:</b> Kéo <b>thanh tiêu đề tối màu</b> để di chuyển ô | Kéo <b>các cạnh/góc viền</b> để thay đổi kích thước.
+    </div>
 
-    <div class="card-container">
-        <!-- Banner trên -->
-        <div class="card-header" id="card-banner">
-            <div class="profile-img-container">
-                <img id="profile-img" src="https://via.placeholder.com/150" alt="Ảnh đại diện">
+    <!-- Khung lưới chính -->
+    <div class="grid-stack">
+        <!-- Ô 1 -->
+        <div class="grid-stack-item" gs-x="0" gs-y="0" gs-w="6" gs-h="12">
+            <div class="grid-stack-item-content">
+                <div class="browser-header">🌐 Trình duyệt 1: Wikipedia</div>
+                <iframe src="https://vi.wikipedia.org" class="browser-content"></iframe>
             </div>
         </div>
 
-        <!-- Thông tin cá nhân -->
-        <div class="card-body">
-            <h1 class="name" id="card-name" contenteditable="false">Nguyễn Văn A</h1>
-            <p class="title" id="card-title" contenteditable="false">Chuyên Viên Phát Triển Phần Mềm</p>
-            <p class="bio" id="card-bio" contenteditable="false">Xin chào! Tôi đang tải dữ liệu từ Database Online...</p>
+        <!-- Ô 2 -->
+        <div class="grid-stack-item" gs-x="6" gs-y="0" gs-w="6" gs-h="12">
+            <div class="grid-stack-item-content">
+                <div class="browser-header">🌐 Trình duyệt 2: OpenStreetMap</div>
+                <iframe src="https://www.openstreetmap.org" class="browser-content"></iframe>
+            </div>
+        </div>
 
-            <p class="edit-hint">💡 Đang mở khóa quản lý: Click vào chữ để sửa trực tiếp phía trên.</p>
+        <!-- Ô 3 -->
+        <div class="grid-stack-item" gs-x="0" gs-y="12" gs-w="6" gs-h="12">
+            <div class="grid-stack-item-content">
+                <div class="browser-header">🌐 Trình duyệt 3: Bing</div>
+                <iframe src="https://www.bing.com" class="browser-content"></iframe>
+            </div>
+        </div>
 
-            <!-- Các nút liên hệ/mạng xã hội -->
-            <div class="links-container" style="margin-top: 15px;">
-                <a href="#" id="link-phone" class="btn-link phone">
-                    <i class="fa-solid fa-phone"></i> <span id="txt-phone">Gọi Điện Thoại</span>
-                </a>
-                <a href="#" id="link-email" class="btn-link email">
-                    <i class="fa-solid fa-envelope"></i> <span id="txt-email">Gửi Email</span>
-                </a>
-                <a href="#" id="link-zalo" target="_blank" class="btn-link zalo">
-                    <i class="fa-solid fa-comment-dots"></i> <span id="txt-zalo">Chat Zalo</span>
-                </a>
-                <a href="#" id="link-fb" target="_blank" class="btn-link facebook">
-                    <i class="fa-brands fa-facebook"></i> <span id="txt-fb">Facebook Cá Nhân</span>
-                </a>
-                <a href="#" id="link-linkedin" target="_blank" class="btn-link linkedin">
-                    <i class="fa-brands fa-linkedin"></i> <span id="txt-linkedin">LinkedIn</span>
-                </a>
-                
-                <!-- Nút mở bảng chỉnh sửa liên lạc -->
-                <button id="config-btn" onclick="openContactModal()" class="btn-link" style="display:none; background: #6c757d; color: white; cursor: pointer;">
-                    <i class="fa-solid fa-gear"></i> Cài Đặt & Tải Ảnh Lên
-                </button>
+        <!-- Ô 4 -->
+        <div class="grid-stack-item" gs-x="6" gs-y="12" gs-w="6" gs-h="12">
+            <div class="grid-stack-item-content">
+                <div class="browser-header">🌐 Trình duyệt 4: Google Search</div>
+                <iframe src="https://www.google.com/search?igu=1" class="browser-content"></iframe>
             </div>
         </div>
     </div>
 
-    <!-- Bảng Modal chỉnh sửa nâng cao -->
-    <div class="modal-overlay" id="contactModal">
-        <div class="modal-content">
-            <h3>⚙️ Quản lý Database & Tải Ảnh</h3>
-            
-            <div class="form-group">
-                <label>🖼️ Tải Ảnh Đại Diện Mới (Từ máy/Điện thoại):</label>
-                <input type="file" id="input-profile-file" accept="image/*">
-            </div>
-            <div class="form-group">
-                <label>🎨 Tải Ảnh Nền / Banner Mới:</label>
-                <input type="file" id="input-banner-file" accept="image/*">
-            </div>
-            <hr style="margin: 10px 0; border: 0; border-top: 1px solid #eee;">
-            <div class="form-group">
-                <label>Số Điện Thoại:</label>
-                <input type="text" id="input-phone">
-            </div>
-            <div class="form-group">
-                <label>Địa Chỉ Email:</label>
-                <input type="text" id="input-email">
-            </div>
-            <div class="form-group">
-                <label>Số Zalo / Link Zalo:</label>
-                <input type="text" id="input-zalo">
-            </div>
-            <div class="form-group">
-                <label>Link Facebook:</label>
-                <input type="text" id="input-fb">
-            </div>
-            <div class="form-group">
-                <label>Link LinkedIn:</label>
-                <input type="text" id="input-linkedin">
-            </div>
-            <div class="form-group" style="background: #fff8e1; padding: 8px; border-radius: 6px; border: 1px dashed #ffc107;">
-                <label style="color: #856404;">🔑 Đổi Mật Khẩu Quản Lý Mới:</label>
-                <input type="password" id="input-password" placeholder="Bỏ trống nếu không đổi">
-            </div>
-
-            <div class="modal-actions">
-                <button class="btn-cancel-modal" onclick="closeContactModal()">Hủy</button>
-                <button class="btn-save-modal" onclick="saveContactChanges()">Lưu Lên Database Online</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- Nhúng thư viện Gridstack.js JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gridstack.js/10.1.2/gridstack-all.js"></script>
     <script>
-        // ==========================================
-        // HÃY THAY THẾ ĐOẠN CẤU HÌNH DƯỚI BẰNG FIREBASE CỦA BẠN
-        // ==========================================
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
-
-        // Khởi tạo Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
-        // ID tài liệu trên Firestore Database (Mỗi danh thiếp có thể quy định 1 ID riêng)
-        const docId = "my_digital_card";
-
-        // Tải dữ liệu từ Database Online ngay khi mở trang
-        window.onload = function() {
-            loadCardData();
-        };
-
-        function loadCardData() {
-            db.collection("digital_cards").doc(docId).get().then((doc) => {
-                if (doc.exists) {
-                    let data = doc.data();
-                    
-                    // Cập nhật Text
-                    document.getElementById('card-name').innerText = data.name || "Nguyễn Văn A";
-                    document.getElementById('card-title').innerText = data.title || "Chuyên Viên Phần Mềm";
-                    document.getElementById('card-bio').innerText = data.bio || "Xin chào!";
-                    
-                    // Cập nhật Ảnh
-                    if(data.profileImg) document.getElementById('profile-img').src = data.profileImg;
-                    if(data.bannerImg) {
-                        let bannerEl = document.getElementById('card-banner');
-                        bannerEl.style.backgroundImage = `url('${data.bannerImg}')`;
-                        bannerEl.style.backgroundSize = "cover";
-                    }
-
-                    // Cập nhật Liên kết
-                    if(data.phone) {
-                        document.getElementById('link-phone').href = "tel:" + data.phone;
-                        document.getElementById('txt-phone').innerText = "Gọi: " + data.phone;
-                    }
-                    if(data.email) {
-                        document.getElementById('link-email').href = "mailto:" + data.email;
-                        document.getElementById('txt-email').innerText = data.email;
-                    }
-                    if(data.zalo) {
-                        document.getElementById('link-zalo').href = "https://zalo.me/" + data.zalo;
-                    }
-                    if(data.fb) {
-                        document.getElementById('link-fb').href = data.fb;
-                    }
-                    if(data.linkedin) {
-                        document.getElementById('link-linkedin').href = data.linkedin;
-                    }
-                } else {
-                    console.log("Chưa có dữ liệu trên Database, sử dụng mặc định.");
-                }
-            }).catch((error) => {
-                console.error("Lỗi khi tải dữ liệu từ database: ", error);
-            });
-        }
-
-        let isEditing = false;
-
-        function handleOwnerAccess() {
-            // Lấy mật khẩu từ Database hoặc mặc định là "123456"
-            db.collection("digital_cards").doc(docId).get().then((doc) => {
-                let currentAdminPassword = (doc.exists && doc.data().adminPass) ? doc.data().adminPass : "123456";
-
-                if (!isEditing) {
-                    let passwordInput = prompt("Vui lòng nhập mật khẩu quản lý để chỉnh sửa:");
-                    if (passwordInput === null) return; 
-
-                    if (passwordInput === currentAdminPassword) {
-                        alert("Đăng nhập thành công!");
-                        isEditing = true;
-                        setEditModeState(true);
-                    } else {
-                        alert("Mật khẩu không đúng!");
-                    }
-                } else {
-                    isEditing = false;
-                    setEditModeState(false);
-
-                    // Lưu văn bản trực tiếp từ thẻ lên Database Online
-                    let updatedData = {
-                        name: document.getElementById('card-name').innerText,
-                        title: document.getElementById('card-title').innerText,
-                        bio: document.getElementById('card-bio').innerText
-                    };
-
-                    db.collection("digital_cards").doc(docId).set(updatedData, { merge: true }).then(() => {
-                        alert("Đã đồng bộ thay đổi lên Database Online thành công!");
-                    }).catch((error) => {
-                        alert("Lỗi khi lưu dữ liệu: " + error);
-                    });
-                }
-            });
-        }
-
-        function setEditModeState(status) {
-            document.body.classList.toggle('editing', status);
-            const nameEl = document.getElementById('card-name');
-            const titleEl = document.getElementById('card-title');
-            const bioEl = document.getElementById('card-bio');
-            const configBtn = document.getElementById('config-btn');
-            const btnText = document.getElementById('edit-btn-text');
-            const editIcon = document.getElementById('edit-icon');
-
-            if (status) {
-                nameEl.contentEditable = "true";
-                titleEl.contentEditable = "true";
-                bioEl.contentEditable = "true";
-                configBtn.style.display = "flex";
-                btnText.innerText = "Lưu Thay Đổi";
-                editIcon.className = "fa-solid fa-floppy-disk";
-            } else {
-                nameEl.contentEditable = "false";
-                titleEl.contentEditable = "false";
-                bioEl.contentEditable = "false";
-                configBtn.style.display = "none";
-                btnText.innerText = "Quản Lý Danh Thiếp";
-                editIcon.className = "fa-solid fa-lock";
-            }
-        }
-
-        function openContactModal() {
-            db.collection("digital_cards").doc(docId).get().then((doc) => {
-                let data = doc.exists ? doc.data() : {};
-                document.getElementById('input-phone').value = data.phone || "0123456789";
-                document.getElementById('input-email').value = data.email || "email@example.com";
-                document.getElementById('input-zalo').value = data.zalo || "0123456789";
-                document.getElementById('input-fb').value = data.fb || "https://facebook.com";
-                document.getElementById('input-linkedin').value = data.linkedin || "https://linkedin.com";
-                document.getElementById('input-password').value = "";
-                document.getElementById('input-profile-file').value = "";
-                document.getElementById('input-banner-file').value = "";
-
-                document.getElementById('contactModal').style.display = 'flex';
-            });
-        }
-
-        function closeContactModal() {
-            document.getElementById('contactModal').style.display = 'none';
-        }
-
-        function saveContactChanges() {
-            let phone = document.getElementById('input-phone').value;
-            let email = document.getElementById('input-email').value;
-            let zalo = document.getElementById('input-zalo').value;
-            let fb = document.getElementById('input-fb').value;
-            let linkedin = document.getElementById('input-linkedin').value;
-            let newPass = document.getElementById('input-password').value;
-
-            let updatePayload = {
-                phone: phone,
-                email: email,
-                zalo: zalo,
-                fb: fb,
-                linkedin: linkedin
-            };
-
-            if(newPass.trim() !== "") {
-                updatePayload.adminPass = newPass.trim();
-            }
-
-            let profileFile = document.getElementById('input-profile-file').files[0];
-            let bannerFile = document.getElementById('input-banner-file').files[0];
-
-            // Hàm xử lý đẩy dữ liệu lên Database sau khi đã đọc file ảnh (nếu có)
-            function commitToDatabase() {
-                db.collection("digital_cards").doc(docId).set(updatePayload, { merge: true }).then(() => {
-                    closeContactModal();
-                    alert("Đã cập nhật Database Online thành công!");
-                    loadCardData(); // Tải lại thông tin mới lên giao diện
-                }).catch((error) => {
-                    alert("Lỗi kết nối database: " + error);
-                });
-            }
-
-            // Xử lý đọc file ảnh đại diện sang Base64 để lưu vào Database
-            if (profileFile) {
-                let reader = new FileReader();
-                reader.onload = function(e) {
-                    updatePayload.profileImg = e.target.result;
-                    if (!bannerFile) commitToDatabase();
-                };
-                reader.readAsDataURL(profileFile);
-            }
-
-            // Xử lý đọc file ảnh nền sang Base64
-            if (bannerFile) {
-                let reader = new FileReader();
-                reader.onload = function(e) {
-                    updatePayload.bannerImg = e.target.result;
-                    commitToDatabase();
-                };
-                reader.readAsDataURL(bannerFile);
-            }
-
-            if (!profileFile && !bannerFile) {
-                commitToDatabase();
-            }
-        }
+        // Khởi tạo tính năng kéo thả và chia lưới
+        GridStack.init({
+            cellHeight: '15px',
+            float: true,
+            minRow: 4
+        });
     </script>
+
 </body>
 </html>
