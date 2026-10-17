@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Vị trí Kho Hàng HML</title>
+    <!-- Nhúng Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Nhúng FontAwesome cho icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .badge-h { background-color: #dc3545; color: white; } /* Đỏ - High */
+        .badge-m { background-color: #ffc107; color: black; } /* Vàng - Medium */
+        .badge-l { background-color: #198754; color: white; } /* Xanh - Low */
+    </style>
+</head>
+<body class="bg-light">
+
+    <div class="container my-4">
+        <!-- Tiêu đề -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-warehouse text-primary"></i> Quản lý Vị trí Kho Hàng HML</h2>
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addItemModal">
+                <i class="fas fa-plus"></i> Thêm vị trí mới
+            </button>
+        </div>
+
+        <!-- Khung tìm kiếm và lọc -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <input type="text" class="form-control" placeholder="Tìm kiếm theo mã SKU, tên hàng hóa...">
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select">
+                            <option value="">-- Lọc theo Nhóm HML --</option>
+                            <option value="H">Nhóm H (High)</option>
+                            <option value="M">Nhóm M (Medium)</option>
+                            <option value="L">Nhóm L (Low)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-primary w-100"><i class="fas fa-search"></i> Tìm kiếm</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bảng danh sách vị trí kho -->
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Mã SKU</th>
+                                <th>Tên hàng hóa</th>
+                                <th class="text-center">Nhóm HML</th>
+                                <th>Khu vực / Dãy kệ</th>
+                                <th class="text-center">Tầng kệ</th>
+                                <th class="text-center">Ô số</th>
+                                <th>Ghi chú vị trí</th>
+                                <th class="text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>SP001</strong></td>
+                                <td>Laptop A_Pro</td>
+                                <td class="text-center"><span class="badge badge-h">H</span></td>
+                                <td>Khu Secure (A)</td>
+                                <td class="text-center">02</td>
+                                <td class="text-center">05</td>
+                                <td>Gần cửa chính, có Camera</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-warning text-white" title="Sửa"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-sm btn-danger" title="Xóa"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>SP002</strong></td>
+                                <td>Linh kiện điện tử B</td>
+                                <td class="text-center"><span class="badge badge-m">M</span></td>
+                                <td>Dãy kệ chung (B)</td>
+                                <td class="text-center">03</td>
+                                <td class="text-center">12</td>
+                                <td>Tầm với trung bình</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-warning text-white" title="Sửa"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-sm btn-danger" title="Xóa"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>SP003</strong></td>
+                                <td>Ốc vít / Vít nở inox</td>
+                                <td class="text-center"><span class="badge badge-l">L</span></td>
+                                <td>Góc kho sâu (C)</td>
+                                <td class="text-center">05</td>
+                                <td class="text-center">01</td>
+                                <td>Tầng cao, xuất ít</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-warning text-white" title="Sửa"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-sm btn-danger" title="Xóa"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Thêm vị trí mới -->
+    <div class="modal fade" id="addItemModal" tabindex="-1" aria-labelledby="addItemModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addItemModalLabel">Thêm Vị Trí Kho Hàng Mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label class="form-label">Mã SKU</label>
+                            <input type="text" class="form-control" placeholder="Ví dụ: SP004">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tên hàng hóa</label>
+                            <input type="text" class="form-control" placeholder="Nhập tên sản phẩm">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nhóm HML</label>
+                            <select class="form-select">
+                                <option value="H">H - Giá trị cao / Tần suất lớn</option>
+                                <option value="M">M - Giá trị/Tần suất trung bình</option>
+                                <option value="L">L - Giá trị thấp / Ít xuất</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Khu vực / Dãy kệ</label>
+                            <input type="text" class="form-control" placeholder="Ví dụ: Dãy A, Khu Secure...">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tầng kệ</label>
+                                <input type="number" class="form-control" placeholder="Ví dụ: 2">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ô số</label>
+                                <input type="number" class="form-control" placeholder="Ví dụ: 5">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chú vị trí</label>
+                            <textarea class="form-control" rows="2" placeholder="Ví dụ: Gần cửa xuất hàng..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary">Lưu thông tin</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nhúng Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
