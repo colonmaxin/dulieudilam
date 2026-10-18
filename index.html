@@ -3,245 +3,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Giả lập đăng nhập LINE - PC</title>
+    <title>Web DeX Simulator</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body, html { width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #1a1a1a; }
 
-        body {
-            background-color: #f7f9fa;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .line-login-container {
-            background: #ffffff;
-            width: 420px;
-            padding: 40px 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            text-align: center;
-        }
-
-        .line-logo {
-            font-size: 32px;
-            font-weight: bold;
-            color: #06C755;
-            margin-bottom: 25px;
-            letter-spacing: -1px;
-        }
-
-        .line-logo span {
-            color: #222;
-        }
-
-        h2 {
-            font-size: 20px;
-            color: #222;
-            margin-bottom: 8px;
-        }
-
-        p.subtitle {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 25px;
-        }
-
-        /* Tabs chuyển đổi qua lại */
-        .tabs {
-            display: flex;
-            margin-bottom: 25px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .tab {
-            flex: 1;
-            padding: 10px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            color: #888;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s ease;
-        }
-
-        .tab.active {
-            color: #06C755;
-            border-bottom-color: #06C755;
-        }
-
-        /* Nội dung từng tab */
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Tab QR Code */
-        .qr-box {
-            background: #fdfdfd;
-            border: 1px solid #eee;
-            padding: 20px;
-            border-radius: 6px;
-            display: inline-block;
-            margin-bottom: 15px;
-        }
-
-        .qr-placeholder {
-            width: 160px;
-            height: 160px;
-            background: #222;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-size: 12px;
-            border-radius: 4px;
-            margin: 0 auto;
+        /* Màn hình nền Desktop */
+        #dex-desktop {
+            width: 100vw;
+            height: calc(100vh - 48px);
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
             position: relative;
-        }
-        
-        .qr-placeholder::after {
-            content: "QR Code LINE";
-            font-weight: bold;
+            padding: 20px;
         }
 
-        .qr-instruction {
-            font-size: 13px;
-            color: #555;
-            line-height: 1.5;
-        }
-
-        /* Tab Email/Password */
-        .input-group {
-            text-align: left;
-            margin-bottom: 15px;
-        }
-
-        .input-group label {
-            display: block;
-            font-size: 13px;
-            color: #333;
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
-            outline: none;
-            transition: border 0.2s;
-        }
-
-        .input-group input:focus {
-            border-color: #06C755;
-        }
-
-        .login-btn {
-            width: 100%;
-            background-color: #06C755;
+        /* Icon ngoài Desktop */
+        .desktop-icon {
+            width: 80px;
+            text-align: center;
             color: white;
-            border: none;
-            padding: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 4px;
             cursor: pointer;
-            margin-top: 10px;
+            padding: 10px;
+            border-radius: 8px;
             transition: background 0.2s;
         }
+        .desktop-icon:hover { background: rgba(255,255,255,0.1); }
+        .desktop-icon div:first-child { font-size: 32px; margin-bottom: 5px; }
+        .desktop-icon span { font-size: 12px; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
 
-        .login-btn:hover {
-            background-color: #05b34c;
+        /* Taskbar phong cách DeX ở dưới cùng */
+        #dex-taskbar {
+            width: 100vw;
+            height: 48px;
+            background: rgba(20, 20, 20, 0.85);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            z-index: 1000;
+            padding: 0 10px;
         }
 
-        .footer-note {
-            margin-top: 20px;
-            font-size: 12px;
-            color: #999;
+        .taskbar-left, .taskbar-right { display: flex; align-items: center; gap: 5px; }
+
+        .taskbar-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
+        .taskbar-btn:hover { background: rgba(255,255,255,0.15); }
+
+        /* Cửa sổ ứng dụng (Window) */
+        .dex-window {
+            position: absolute;
+            top: 100px;
+            left: 150px;
+            width: 600px;
+            height: 400px;
+            background: #242424;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        .window-header {
+            height: 36px;
+            background: #2e2e2e;
+            color: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+            font-size: 13px;
+            cursor: move;
+        }
+
+        .window-controls button {
+            background: none;
+            border: none;
+            color: #aaa;
+            font-size: 14px;
+            padding: 4px 8px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .window-controls button:hover { background: rgba(255,255,255,0.2); color: white; }
+        .window-controls button.close-btn:hover { background: #e81123; color: white; }
+
+        .window-body {
+            flex: 1;
+            background: #ffffff;
+            color: #333;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div class="line-login-container">
-        <div class="line-logo">LINE <span>PC</span></div>
-        
-        <h2>Đăng nhập LINE</h2>
-        <p class="subtitle">Trò chuyện mọi lúc, mọi nơi trên máy tính của bạn</p>
-
-        <!-- Thanh chuyển đổi tab -->
-        <div class="tabs">
-            <div class="tab active" onclick="switchTab('qr')">Mã QR</div>
-            <div class="tab" onclick="switchTab('email')">Email / Mật khẩu</div>
+    <!-- Màn hình chính -->
+    <div id="dex-desktop">
+        <!-- Icon mẫu mở trình duyệt -->
+        <div class="desktop-icon" onclick="openWindow('browserWindow')">
+            <div>🌐</div>
+            <span>Trình duyệt</span>
         </div>
+    </div>
 
-        <!-- Nội dung Tab 1: Mã QR -->
-        <div id="tab-qr" class="tab-content active">
-            <div class="qr-box">
-                <div class="qr-placeholder"></div>
+    <!-- Cửa sổ ứng dụng mẫu -->
+    <div id="browserWindow" class="dex-window hidden">
+        <div class="window-header" onmousedown="dragWindow(event, 'browserWindow')">
+            <span>Trình duyệt Samsung DeX</span>
+            <div class="window-controls">
+                <button onclick="minimizeWindow('browserWindow')">🗕</button>
+                <button onclick="closeWindow('browserWindow')">✕</button>
             </div>
-            <p class="qr-instruction">
-                Mở ứng dụng LINE trên điện thoại của bạn, chọn biểu tượng quét mã QR để đăng nhập.
-            </p>
         </div>
-
-        <!-- Nội dung Tab 2: Email & Mật khẩu (Giả lập) -->
-        <div id="tab-email" class="tab-content">
-            <form onsubmit="handleLogin(event)">
-                <div class="input-group">
-                    <label>Email tài khoản LINE</label>
-                    <input type="email" id="email" placeholder="Nhập email của bạn" required>
-                </div>
-                <div class="input-group">
-                    <label>Mật khẩu</label>
-                    <input type="password" id="password" placeholder="Nhập mật khẩu" required>
-                </div>
-                <button type="submit" class="login-btn">Đăng nhập</button>
-            </form>
+        <div class="window-body">
+            <h3>Chào mừng bạn đến với mô phỏng Samsung DeX trên Web!</h3>
+            <p>Ứng dụng này đang chạy trong một cửa sổ có thể tùy biến.</p>
         </div>
+    </div>
 
-        <div class="footer-note">
-            Trang web giả lập giao diện LINE PC (Chỉ để trưng bày / học tập)
+    <!-- Thanh Taskbar -->
+    <div id="dex-taskbar">
+        <div class="taskbar-left">
+            <button class="taskbar-btn" onclick="toggleStartMenu()">
+                <span>🪟</span> <b>DeX</b>
+            </button>
+            <button class="taskbar-btn" onclick="openWindow('browserWindow')">🌐 Trình duyệt</button>
+        </div>
+        <div class="taskbar-right">
+            <span id="clock" style="color: white; font-size: 13px; padding: 0 10px;">00:00</span>
         </div>
     </div>
 
     <script>
-        // Hàm chuyển đổi qua lại giữa tab QR và tab Nhập thông tin
-        function switchTab(type) {
-            const tabs = document.querySelectorAll('.tab');
-            const contents = document.querySelectorAll('.tab-content');
+        // Đồng hồ góc phải
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }, 1000);
 
-            tabs.forEach(t => t.classList.remove('active'));
-            contents.forEach(c => c.classList.remove('active'));
-
-            if (type === 'qr') {
-                tabs[0].classList.add('active');
-                document.getElementById('tab-qr').classList.add('active');
-            } else {
-                tabs[1].classList.add('active');
-                document.getElementById('tab-email').classList.add('active');
-            }
+        // Mở cửa sổ
+        function openWindow(id) {
+            document.getElementById(id).classList.remove('hidden');
         }
 
-        // Hàm giả lập sự kiện khi bấm nút đăng nhập ở tab email
-        function handleLogin(event) {
-            event.preventDefault();
-            const email = document.getElementById('email').value;
-            alert(`[Giả lập] Đã nhận thông tin đăng nhập của: ${email}\n(Đây chỉ là trang web giao diện tĩnh, không kết nối hệ thống thật của LINE).`);
+        // Đóng cửa sổ
+        function closeWindow(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        // Thu nhỏ cửa sổ
+        function minimizeWindow(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        // Tính năng kéo thả cửa sổ (Drag Window) đơn giản
+        function dragWindow(e, id) {
+            const win = document.getElementById(id);
+            let shiftX = e.clientX - win.getBoundingClientRect().left;
+            let shiftY = e.clientY - win.getBoundingClientRect().top;
+
+            function moveAt(pageX, pageY) {
+                win.style.left = pageX - shiftX + 'px';
+                win.style.top = pageY - shiftY + 'px';
+            }
+
+            function onMouseMove(e) {
+                moveAt(e.pageX, e.pageY);
+            }
+
+            document.addEventListener('mousemove', onMouseMove);
+
+            win.onmouseup = function() {
+                document.removeEventListener('mousemove', onMouseMove);
+                win.onmouseup = null;
+            };
         }
     </script>
-
 </body>
 </html>
