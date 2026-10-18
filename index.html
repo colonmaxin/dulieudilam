@@ -1,89 +1,156 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Controle OBS - HTML</title>
-    <!-- Importando a biblioteca oficial do OBS WebSocket para JS -->
-    <script src="https://cdn.jsdelivr.net/npm/obs-websocket-js@5/dist/obs-websocket.min.js"></script>
+    <title>Đăng nhập LINE - HTML thuần</title>
+    <!-- Thư viện SDK LINE Login -->
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background: #121212; color: #fff; margin-top: 50px; }
-        .card { background: #1e1e1e; padding: 20px; border-radius: 8px; display: inline-block; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        button { background: #007bff; color: white; border: none; padding: 10px 20px; margin: 5px; border-radius: 5px; cursor: pointer; font-size: 16px; }
-        button:hover { background: #0056b3; }
-        .red { background: #dc3545; }
-        .red:hover { background: #a71d2a; }
-        #status { font-weight: bold; margin-bottom: 15px; }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 100px;
+            background-color: #f4f7f6;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: inline-block;
+            min-width: 300px;
+        }
+        .line-btn {
+            background-color: #06C755;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .line-btn:hover {
+            background-color: #05b34c;
+        }
+        .logout-btn {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        .logout-btn:hover {
+            background-color: #e03e3e;
+        }
+        img.avatar {
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            margin-bottom: 15px;
+        }
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>Painel OBS Full HTML</h2>
-        <div id="status" style="color: orange;">Status: Desconectado</div>
-        
-        <hr style="border: 0; border-top: 1px solid #444;">
-
-        <h3>Gravação / Transmissão</h3>
-        <button onclick="startRecord()">Iniciar Gravação</button>
-        <button class="red" onclick="stopRecord()">Parar Gravação</button>
+    <div class="container">
+        <h2>Đăng nhập hệ thống</h2>
         <br>
-        <button onclick="startStream()">Iniciar Live</button>
-        <button class="red" onclick="stopStream()">Parar Live</button>
 
-        <hr style="border: 0; border-top: 1px solid #444;">
+        <!-- Phần nút đăng nhập (hiện khi chưa đăng nhập) -->
+        <div id="login-section">
+            <button class="line-btn" onclick="lineLogin()">
+                <span>Đăng nhập với LINE</span>
+            </button>
+        </div>
 
-        <h3>Cenas</h3>
-        <!-- Substitua 'Cena 2' pelo nome exato da sua cena no OBS -->
-        <button onclick="changeScene('Cena 2') Mudar para Cena 2</button>
+        <!-- Phần hiển thị thông tin profile (hiện sau khi đăng nhập thành công) -->
+        <div id="profile-section" class="hidden">
+            <img id="profile-picture" class="avatar" src="" alt="Avatar">
+            <h3 id="profile-name"></h3>
+            <p><strong>LINE User ID:</strong> <span id="profile-id"></span></p>
+            <p><strong>Email:</strong> <span id="profile-email">Không có</span></p>
+            <button class="logout-btn" onclick="lineLogout()">Đăng xuất</button>
+        </div>
     </div>
 
     <script>
-        const obs = new OBSWebSocket();
+        // THAY THẾ CHANNEL ID CỦA BẠN VÀO ĐÂY
+        const CHANNEL_ID = "YOUR_LINE_CHANNEL_ID";
 
-        async function connectOBS() {
+        // Khởi tạo LIFF (LINE Front-end Framework)
+        window.onload = async function () {
             try {
-                // Altere a porta (4455) e a senha caso tenha configurado no OBS
-                // Se não colocou senha, remova o campo 'password'
-                await obs.connect('ws://192.168.1.10:4455', 'SUA_SENHA_AQUI');
-                
-                document.getElementById('status').innerText = "Status: Conectado com Sucesso!";
-                document.getElementById('status').style.color = "lightgreen";
-                console.log('Conectado ao OBS Studio!');
+                await liff.init({ liffId: CHANNEL_ID });
+
+                // Kiểm tra xem người dùng đã đăng nhập LINE trước đó chưa
+                if (liff.isLoggedIn()) {
+                    runAfterLogin();
+                }
             } catch (error) {
-                document.getElementById('status').innerText = "Status: Falha na Conexão";
-                document.getElementById('status').style.color = "red";
-                console.error('Erro ao conectar ao OBS:', error);
+                console.error('Lỗi khởi tạo LIFF:', error);
+                alert('Khởi tạo ứng dụng thất bại. Hãy kiểm tra lại Channel ID (LIFF ID).');
+            }
+        };
+
+        // Hàm gọi khi bấm nút Đăng nhập
+        function lineLogin() {
+            if (!liff.isLoggedIn()) {
+                // Chuyển hướng người dùng sang trang đăng nhập của LINE
+                liff.login();
             }
         }
 
-        // Funções de Controle
-        async function startRecord() {
-            try { await obs.call('StartRecord'); } catch (e) { console.error(e); }
-        }
-
-        async function stopRecord() {
-            try { await obs.call('StopRecord'); } catch (e) { console.error(e); }
-        }
-
-        async function startStream() {
-            try { await obs.call('StartStream'); } catch (e) { console.error(e); }
-        }
-
-        async function stopStream() {
-            try { await obs.call('StopStream'); } catch (e) { console.error(e); }
-        }
-
-        async function changeScene(sceneName) {
+        // Hàm lấy và hiển thị thông tin sau khi đăng nhập thành công
+        async function runAfterLogin() {
             try {
-                await obs.call('SetCurrentProgramScene', { sceneName: sceneName });
-            } catch (e) {
-                console.error('Erro ao mudar de cena:', e);
+                const profile = await liff.getProfile();
+                
+                // Hiển thị dữ liệu lên giao diện
+                document.getElementById('profile-picture').src = profile.pictureUrl;
+                document.getElementById('profile-name').textContent = profile.displayName;
+                document.getElementById('profile-id').textContent = profile.userId;
+
+                // Nếu có quyền đọc email (cần cấu hình scope trong LINE Developers Console)
+                try {
+                    const email = liff.getDecodedIDToken().email;
+                    if (email) {
+                        document.getElementById('profile-email').textContent = email;
+                    }
+                } catch (e) {
+                    console.log('Không lấy được email hoặc chưa cấp quyền.');
+                }
+
+                // Ẩn nút đăng nhập, hiện thông tin profile
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('profile-section').classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Lỗi lấy thông tin profile:', error);
             }
         }
 
-        // Executa a conexão ao carregar a página
-        connectOBS();
+        // Hàm Đăng xuất
+        function lineLogout() {
+            if (liff.isLoggedIn()) {
+                liff.logout();
+                // Reload lại trang sau khi đăng xuất
+                window.location.reload();
+            }
+        }
     </script>
+
 </body>
 </html>
