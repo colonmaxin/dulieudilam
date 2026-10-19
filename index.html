@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -49,7 +48,7 @@ h4 { margin-top: 15px; margin-bottom: 8px; color: #555; }
 table { width: 100%; border-collapse: collapse; margin-top: 10px; }
 th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; font-size: 14px; vertical-align: middle; }
 th { background-color: #667eea; color: white; }
-tr:hover { background-color: #f9f9f9; }
+tr:hover { background-color: #f9f9f9; cursor: pointer; }
 .badge { background: #2ecc71; color: white; padding: 3px 7px; border-radius: 4px; font-size: 11px; }
 .badge-admin { background: #e67e22; }
 .badge-member { background: #3498db; }
@@ -60,6 +59,8 @@ tr:hover { background-color: #f9f9f9; }
 .action-btn { padding: 4px 8px; border-radius: 3px; text-decoration: none; font-size: 12px; color: white; margin-right: 4px; display: inline-block; border: none; cursor: pointer; }
 .delete-btn { background: #e74c3c; }
 .delete-btn:hover { background: #c0392b; }
+.edit-btn { background: #f39c12; }
+.edit-btn:hover { background: #d68910; }
 .product-thumb { width: 45px; height: 45px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; cursor: pointer; transition: transform 0.2s; }
 .product-thumb:hover { transform: scale(1.1); }
 .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); justify-content: center; align-items: center; }
@@ -223,7 +224,7 @@ tr:hover { background-color: #f9f9f9; }
 </thead>
 <tbody id="adminProdTableBody"></tbody>
 </table>
-<h4 id="addSubTitle" style="margin-top: 15px;">Thêm Bao Bì Mới (Tải ảnh từ điện thoại)</h4>
+<h4 id="addSubTitle" style="margin-top: 15px;">Thêm / Sửa Bao Bì (Tải ảnh từ điện thoại)</h4>
 <div class="form-inline" id="addProdFormContainer"></div>
 </div>
 </section>
@@ -243,7 +244,7 @@ tr:hover { background-color: #f9f9f9; }
 </div>
 </div>
 
-<!-- MODAL ẢNH PHÓNG TO -->
+<!-- MODAL ẢNH PHÓNG TO/THU NHỎ -->
 <div id="imageModal" class="modal" onclick="closeImageModal()">
 <span class="close-modal">&times;</span>
 <img class="modal-content" id="modalImg">
@@ -275,7 +276,8 @@ products: [
 { id: 'BB03', cat_id: 'CAT02', name: 'Gói-C3', price: 'Màng Co', qty: 500, image: '', custom_data: {} }
 ],
 currentUser: null,
-selectedCat: ''
+selectedCat: '',
+editingProdId: null // Lưu ID sản phẩm đang sửa
 };
 
 const dicts = {
@@ -297,8 +299,9 @@ cat_id_th: 'Mã Danh Mục',
 cat_name_th: 'Tên Danh Mục',
 action_th: 'Thao Tác',
 delete_btn: 'Xóa',
-add_prod_title: 'Thêm Bao Bì Mới',
+edit_btn: 'Sửa',
 add_prod_btn: 'Thêm Mới',
+update_prod_btn: 'Lưu Thay Đổi',
 login_error: 'Sai tài khoản hoặc mật khẩu!'
 },
 tw: {
@@ -319,8 +322,9 @@ cat_id_th: '分類代碼',
 cat_name_th: '分類名稱',
 action_th: '操作',
 delete_btn: '刪除',
-add_prod_title: '新增包裝',
+edit_btn: '編輯',
 add_prod_btn: '新增',
+update_prod_btn: '儲存變更',
 login_error: '帳號或密碼錯誤！'
 }
 };
@@ -362,7 +366,7 @@ let thHtml = `<th>${h.col_image}</th><th>${h.col_id}</th><th>${h.col_cat}</th><t
 appData.custom_columns.forEach(cc => { thHtml += `<th>${cc}</th>`; });
 document.getElementById('tableHeaderRow').innerHTML = thHtml;
 
-// Render Dữ Liệu Bảng Khách Hàng
+// Render Dữ Liệu Bảng Khách Hàng (Click vào dòng hoặc ảnh để phóng to)
 let prodHtml = '';
 appData.products.forEach(p => {
 let catObj = appData.categories.find(c => c.id === p.cat_id);
@@ -373,8 +377,9 @@ let val = (p.custom_data && p.custom_data[cc]) ? p.custom_data[cc] : '';
 customTd += `<td>${val}</td>`;
 });
 
-prodHtml += `<tr class="product-row" data-cat="${p.cat_id}" data-search="${p.id.toLowerCase()} ${p.name.toLowerCase()}">
-<td>${p.image ? `<img src="${p.image}" class="product-thumb" onclick="openImageModal('${p.image}')" alt="Ảnh bao bì">` : `<span style="color:#999;font-size:11px;">${t.table_empty}</span>`}</td>
+let imgSrc = p.image ? p.image : '';
+prodHtml += `<tr class="product-row" data-cat="${p.cat_id}" data-search="${p.id.toLowerCase()} ${p.name.toLowerCase()}" onclick="${imgSrc ? `openImageModal('${imgSrc}')` : ''}">
+<td>${imgSrc ? `<img src="${imgSrc}" class="product-thumb" alt="Ảnh">` : `<span style="color:#999;font-size:11px;">${t.table_empty}</span>`}</td>
 <td><b>${p.id}</b></td>
 <td>${catName}</td>
 <td>${p.name}</td>
@@ -406,7 +411,7 @@ document.getElementById('colNameInput').value = h.col_name;
 document.getElementById('colPriceInput').value = h.col_price;
 document.getElementById('colQtyInput').value = h.col_qty;
 
-// Render danh sách cột tùy chỉnh kèm nút xóa cột
+// Render danh sách cột tùy chỉnh kèm nút xóa
 let customColsHtml = '';
 appData.custom_columns.forEach(cc => {
   customColsHtml += `<span style="background: #e2e8f0; padding: 4px 10px; border-radius: 4px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">${cc} <button onclick="deleteCustomColumn('${cc}')" style="background:#e74c3c; color:white; border:none; border-radius:3px; padding:1px 5px; cursor:pointer; font-size:11px;">&times;</button></span>`;
@@ -443,14 +448,17 @@ let val = (p.custom_data && p.custom_data[cc]) ? p.custom_data[cc] : '';
 customTd += `<td>${val}</td>`;
 });
 adminProdBody += `<tr>
-<td>${p.image ? `<img src="${p.image}" class="product-thumb" onclick="openImageModal('${p.image}')" alt="Ảnh bao bì">` : `<span style="color:#999;font-size:11px;">${t.table_empty}</span>`}</td>
+<td>${p.image ? `<img src="${p.image}" class="product-thumb" onclick="openImageModal('${p.image}')" alt="Ảnh">` : `<span style="color:#999;font-size:11px;">${t.table_empty}</span>`}</td>
 <td><b>${p.id}</b></td>
 <td>${catName}</td>
 <td>${p.name}</td>
 <td>${p.price}</td>
 <td>${p.qty}</td>
 ${customTd}
-<td><button onclick="deleteProduct('${p.id}')" class="action-btn delete-btn">${t.delete_btn}</button></td>
+<td>
+  <button onclick="startEditProduct('${p.id}')" class="action-btn edit-btn">${t.edit_btn}</button>
+  <button onclick="deleteProduct('${p.id}')" class="action-btn delete-btn">${t.delete_btn}</button>
+</td>
 </tr>`;
 });
 document.getElementById('adminProdTableBody').innerHTML = adminProdBody;
@@ -460,19 +468,31 @@ appData.categories.forEach(c => { catOptions += `<option value="${c.id}">${c.nam
 
 let customInputs = '';
 appData.custom_columns.forEach(cc => {
-customInputs += `<input type="text" id="addCustom_${cc}" placeholder="${cc}..." style="min-width:110px;">`;
+let editingProd = appData.products.find(p => p.id === appData.editingProdId);
+let val = (editingProd && editingProd.custom_data) ? (editingProd.custom_data[cc] || '') : '';
+customInputs += `<input type="text" id="addCustom_${cc}" placeholder="${cc}..." value="${val}" style="min-width:110px;">`;
 });
 
+let pId = '', pCat = '', pName = '', pPrice = '', pQty = 0;
+if(appData.editingProdId) {
+  let found = appData.products.find(p => p.id === appData.editingProdId);
+  if(found) {
+    pId = found.id; pCat = found.cat_id; pName = found.name; pPrice = found.price; pQty = found.qty;
+  }
+}
+
 document.getElementById('addProdFormContainer').innerHTML = `
-<input type="text" id="newProdId" placeholder="${h.col_id}..." style="min-width:90px;">
+<input type="text" id="newProdId" placeholder="${h.col_id}..." value="${pId}" ${appData.editingProdId ? 'readonly style="background:#eee;min-width:90px;"' : 'style="min-width:90px;"'}>
 <select id="newProdCat">${catOptions}</select>
-<input type="text" id="newProdName" placeholder="${h.col_name}...">
-<input type="text" id="newProdPrice" placeholder="${h.col_price}..." style="min-width:90px;">
-<input type="number" id="newProdQty" placeholder="${h.col_qty}..." value="0" style="min-width:70px;">
+<input type="text" id="newProdName" placeholder="${h.col_name}..." value="${pName}">
+<input type="text" id="newProdPrice" placeholder="${h.col_price}..." value="${pPrice}" style="min-width:90px;">
+<input type="number" id="newProdQty" placeholder="${h.col_qty}..." value="${pQty}" style="min-width:70px;">
 ${customInputs}
 <input type="file" id="newProdImage" accept="image/*" style="font-size:12px;padding:2px;">
-<button onclick="addProduct()">${t.add_prod_btn}</button>
+<button onclick="saveProduct()" style="background:${appData.editingProdId ? '#f39c12' : '#2ecc71'}">${appData.editingProdId ? t.edit_btn : t.add_prod_btn}</button>
+${appData.editingProdId ? `<button onclick="cancelEdit()" style="background:#7f8c8d;margin-left:5px;">Hủy</button>` : ''}
 `;
+if(pCat) document.getElementById('newProdCat').value = pCat;
 }
 
 function switchLang(lang) {
@@ -559,7 +579,6 @@ switchTab('shop');
 render();
 }
 
-// Chỉnh sửa tên các cột cố định
 function updateColumnHeaders() {
 appData.headers.col_image = document.getElementById('colImageInput').value.trim() || 'Ảnh';
 appData.headers.col_id = document.getElementById('colIdInput').value.trim() || 'Ký tự bao bì';
@@ -571,7 +590,6 @@ render();
 alert("Đã lưu tên các cột!");
 }
 
-// Thêm cột thông tin mới
 function addCustomColumn() {
 let colName = document.getElementById('newColNameInput').value.trim();
 if(colName && !appData.custom_columns.includes(colName)) {
@@ -583,11 +601,9 @@ alert("Tên cột trống hoặc đã tồn tại!");
 }
 }
 
-// Xóa cột tùy chỉnh
 function deleteCustomColumn(colName) {
 if(confirm(`Bạn có chắc muốn xóa cột "${colName}" không?`)) {
 appData.custom_columns = appData.custom_columns.filter(c => c !== colName);
-// Xóa dữ liệu cột đó trong từng sản phẩm
 appData.products.forEach(p => {
   if(p.custom_data) delete p.custom_data[colName];
 });
@@ -595,7 +611,6 @@ render();
 }
 }
 
-// Quản lý tài khoản
 function createNewUser() {
   let username = document.getElementById('newUsernameInput').value.trim();
   let pass = document.getElementById('newPasswordInput').value.trim();
@@ -641,7 +656,19 @@ appData.categories = appData.categories.filter(c => c.id !== id);
 render();
 }
 
-function addProduct() {
+// Bắt đầu chỉnh sửa sản phẩm
+function startEditProduct(id) {
+appData.editingProdId = id;
+render();
+}
+
+function cancelEdit() {
+appData.editingProdId = null;
+render();
+}
+
+// Thêm mới hoặc Cập nhật sản phẩm
+function saveProduct() {
 let id = document.getElementById('newProdId').value.trim();
 let cat_id = document.getElementById('newProdCat').value;
 let name = document.getElementById('newProdName').value.trim();
@@ -660,22 +687,46 @@ if(id && name) {
 if(fileInput.files && fileInput.files[0]) {
 let reader = new FileReader();
 reader.onload = function(e) {
-appData.products.push({ id, cat_id, name, price, qty, image: e.target.result, custom_data });
-render();
+processSave(id, cat_id, name, price, qty, e.target.result, custom_data);
 }
 reader.readAsDataURL(fileInput.files[0]);
 } else {
-appData.products.push({ id, cat_id, name, price, qty, image: '', custom_data });
-render();
+let existingImg = '';
+if(appData.editingProdId) {
+  let found = appData.products.find(p => p.id === id);
+  if(found) existingImg = found.image;
+}
+processSave(id, cat_id, name, price, qty, existingImg, custom_data);
 }
 } else {
 alert("Vui lòng nhập Ký tự bao bì và Mã đóng gói!");
 }
 }
 
-function deleteProduct(id) {
-appData.products = appData.products.products?.filter(p => p.id !== id) || appData.products.filter(p => p.id !== id);
+function processSave(id, cat_id, name, price, qty, image, custom_data) {
+if(appData.editingProdId) {
+  // Cập nhật sản phẩm cũ
+  let index = appData.products.findIndex(p => p.id === id);
+  if(index !== -1) {
+    appData.products[index] = { id, cat_id, name, price, qty, image, custom_data };
+  }
+  appData.editingProdId = null;
+} else {
+  // Thêm mới
+  if(appData.products.some(p => p.id === id)) {
+    alert("Ký tự bao bì đã tồn tại! Vui lòng chọn ký tự khác.");
+    return;
+  }
+  appData.products.push({ id, cat_id, name, price, qty, image, custom_data });
+}
 render();
+}
+
+function deleteProduct(id) {
+if(confirm("Bạn có chắc muốn xóa bao bì này không?")) {
+appData.products = appData.products.filter(p => p.id !== id);
+render();
+}
 }
 
 function openImageModal(src) {
@@ -694,5 +745,3 @@ render();
 
 </body>
 </html>
-
-```
