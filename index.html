@@ -1,3 +1,221 @@
-termux-x11 :0 -ac &
-termux-x11 :0 -ac &
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ứng dụng Dịch Song Song Thời Gian Thực</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 600px; 
+            margin: 30px auto; 
+            padding: 20px; 
+            background: #f4f4f9; 
+        }
+        .card { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+            margin-bottom: 20px; 
+        }
+        select, input, button { 
+            padding: 10px; 
+            margin: 5px 0; 
+            font-size: 16px; 
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button { 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-weight: bold;
+        }
+        button:hover { background: #0056b3; }
+        button.recording { background: #dc3545; }
+        #chat-box { 
+            height: 250px; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+            padding: 10px; 
+            overflow-y: scroll; 
+            background: #fff; 
+            margin-bottom: 10px; 
+        }
+        .message { 
+            margin-bottom: 10px; 
+            padding: 10px; 
+            border-radius: 6px; 
+            background: #e9ecef; 
+            font-size: 14px;
+        }
+        label { font-weight: bold; font-size: 14px; color: #333; }
+    </style>
+</head>
+<body>
 
+    <div class="card">
+        <h2>🌐 Thiết lập phòng trò chuyện</h2>
+        
+        <label>Mã phòng:</label>
+        <input type="text" id="room-input" value="phong-123">
+        
+        <label>Ngôn ngữ của bạn:</label>
+        <select id="my-lang">
+            <option value="vi-VN">Tiếng Việt</option>
+            <option value="en-US">Tiếng Anh</option>
+            <option value="ja-JP">Tiếng Nhật</option>
+            <option value="ko-KR">Tiếng Hàn</option>
+        </select>
+        
+        <label>Ngôn ngữ muốn dịch sang (cho đối phương):</label>
+        <select id="target-lang">
+            <option value="en-US">Tiếng Anh</option>
+            <option value="vi-VN">Tiếng Việt</option>
+            <option value="ja-JP">Tiếng Nhật</option>
+            <option value="ko-KR">Tiếng Hàn</option>
+        </select>
+        
+        <button onclick="connectRoom()">Kết nối phòng</button>
+    </div>
+
+    <div class="card" id="chat-section" style="display:none;">
+        <h2>💬 Cuộc trò chuyện trực tiếp</h2>
+        <div id="chat-box"></div>
+        <button id="mic-btn" onclick="toggleListening()">🎤 Nhấn để nói</button>
+    </div>
+
+    <script>
+        let ws;
+        let recognition;
+        let isListening = false;
+
+        function connectRoom() {
+            const room = document.getElementById('room-input').value;
+            if (!room) return alert('Vui lòng nhập mã phòng!');
+
+            // Sử dụng WebSocket server (nếu chạy local với Node.js ở bài trước, dùng ws://localhost:3000)
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+            const wsHost = window.location.host ? window.location.host : 'localhost:3000';
+            
+            ws = new WebSocket(`${wsProtocol}${wsHost}`);
+
+            ws.onopen = () => {
+                ws.send(JSON.stringify({ type: 'join', room: room }));
+                document.getElementById('chat-section').style.display = 'block';
+                alert('Đã kết nối vào phòng thành công!');
+            };
+
+            ws.onerror = (error) => {
+                console.error('Lỗi WebSocket:', error);
+                alert('Không thể kết nối đến WebSocket Server. Hãy đảm bảo bạn đã chạy file server.js!');
+            };
+
+            ws.onmessage = async (event) => {
+                const data = JSON.parse(event.data);
+                appendMessage(`Đối phương (${data.senderLang}): ${data.text}`);
+                appendMessage(`Dịch (${data.targetLang}): ${data.translatedText}`, '#d4edda');
+                
+                // Đọc bản dịch thành âm thanh (Text-to-Speech)
+                speakText(data.translatedText, data.targetLang);
+            };
+
+            initSpeechRecognition();
+        }
+
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert('Trình duyệt của bạn không hỗ trợ nhận diện giọng nói! Vui lòng dùng Google Chrome.');
+                return;
+            }
+
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onresult = async (event) => {
+                const text = event.results[0][0].transcript;
+                const myLang = document.getElementById('my-lang').value;
+                const targetLang = document.getElementById('target-lang').value;
+
+                appendMessage(`Tôi (${myLang}): ${text}`);
+
+                // Gọi hàm giả lập dịch thuật
+                const translatedText = await fakeTranslate(text, myLang, targetLang);
+                
+                appendMessage(`Bản dịch gửi đi: ${translatedText}`, '#cce5ff');
+
+                // Gửi qua WebSocket cho người còn lại
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({
+                        type: 'message',
+                        senderLang: myLang,
+                        targetLang: targetLang,
+                        text: text,
+                        translatedText: translatedText
+                    }));
+                }
+            };
+
+            recognition.onend = () => {
+                if (isListening) {
+                    try {
+                        recognition.start();
+                    } catch (e) {
+                        console.log(e);
+                    }
+                }
+            };
+        }
+
+        function toggleListening() {
+            const btn = document.getElementById('mic-btn');
+            const myLang = document.getElementById('my-lang').value;
+            recognition.lang = myLang;
+
+            if (!isListening) {
+                try {
+                    recognition.start();
+                    isListening = true;
+                    btn.textContent = '🛑 Đang nghe... (Nhấn để dừng)';
+                    btn.classList.add('recording');
+                } catch (e) {
+                    console.error(e);
+                }
+            } else {
+                recognition.stop();
+                isListening = false;
+                btn.textContent = '🎤 Nhấn để nói';
+                btn.classList.remove('recording');
+            }
+        }
+
+        // Hàm giả lập dịch thuật (Bạn có thể thay thế bằng Google Translate API / OpenAI API thực tế)
+        async function fakeTranslate(text, source, target) {
+            return `[Đã dịch từ ${source} sang ${target}]: ${text}`;
+        }
+
+        // Hàm tổng hợp giọng nói (Text-to-Speech) có sẵn của trình duyệt
+        function speakText(text, lang) {
+            if (!window.speechSynthesis) return;
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function appendMessage(text, bgColor = '#e9ecef') {
+            const chatBox = document.getElementById('chat-box');
+            const div = document.createElement('div');
+            div.className = 'message';
+            div.style.backgroundColor = bgColor;
+            div.textContent = text;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    </script>
+</body>
+</html>
